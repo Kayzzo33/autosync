@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------
+  # Redis: Fila de Mensagens (BullMQ)
+  # Porta 6380 externa para não conflitar com outros projetos
+  # ---------------------------------------------------------------
+  redis-autosync:
+    image: redis:7.2-alpine
+    container_name: autosync-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data_v2:/data
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy noeviction
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ---------------------------------------------------------------
+  # WAHA (WhatsApp HTTP API) - Baseado no modelo funcional do usuário
+  # Porta 3000 — acesse http://localhost:3000/dashboard para gerenciar
+  # ---------------------------------------------------------------
+  waha:
+    image: devlikeapro/waha
+    container_name: autosync-waha
+    restart: always
+    environment:
+      - WHATSAPP_DEFAULT_ENGINE=WEBJS
+      - WAHA_MEDIA_STORAGE=LOCAL
+      - WAHA_API_KEY=autosync_waha_key_2026
+      - WAHA_DASHBOARD_ENABLED=true
+      - WAHA_DASHBOARD_USERNAME=admin
+      - WAHA_DASHBOARD_PASSWORD=admin123
+      - WHATSAPP_API_HOSTNAME=0.0.0.0
+      # Evita sincronização massiva de chats antigos para economizar memória
+      - WHATSAPP_CONFIG_NOWEBSYNC=true
+    ports:
+      - "3000:3000"
+    volumes:
+      - waha_data:/app/.sessions
+
+volumes:
+  redis_data_v2:
+    driver: local
+  waha_data:
+    driver: local

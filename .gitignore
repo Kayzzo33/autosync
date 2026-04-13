@@ -1,0 +1,12 @@
+node_modules
+.next
+.env
+.env.example
+.env*.local
+.env.sentry-build-plugin
+dist
+build
+.swc
+coverage
+*.log
+.DS_Store

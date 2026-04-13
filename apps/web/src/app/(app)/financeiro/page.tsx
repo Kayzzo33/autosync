@@ -1,0 +1,306 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { 
+  DollarSign, TrendingUp, ArrowDownRight, 
+  ArrowUpRight, Calendar, Filter, Plus, 
+  Search, CheckCircle, Clock, ChevronRight,
+  TrendingDown, Loader2
+} from 'lucide-react';
+import { api } from '@/services/api';
+import { toast } from 'sonner';
+
+interface Movimentacao {
+  id: string;
+  data: string;
+  descricao: string;
+  tipo: 'entrada' | 'saida';
+  valor: number;
+  os_id?: string;
+}
+
+interface ContaReceber {
+  id: string;
+  created_at: string;
+  cliente_nome: string;
+  os_numero: string;
+  valor: number;
+  status: 'pendente' | 'pago';
+}
+
+export default function FinanceiroPage() {
+  const [resumo, setResumo] = useState({ faturamento_mes: 0, total_receber: 0, total_recebido: 0 });
+  const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
+  const [contasReceber, setContasReceber] = useState<ContaReceber[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'fluxo' | 'receber'>('fluxo');
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [newManual, setNewManual] = useState({ tipo: 'entrada', descricao: '', valor: 0 });
+
+  const loadData = async () => {
+    try {
+      const [resumoRes, movsRes, contasRes] = await Promise.all([
+        api.get('/financeiro/resumo'),
+        api.get('/financeiro/movimentacoes'),
+        api.get('/financeiro/contas-receber')
+      ]);
+      setResumo(resumoRes.data);
+      setMovimentacoes(movsRes.data.movimentacoes);
+      setContasReceber(contasRes.data.contas);
+    } catch (err) {
+      toast.error('Erro ao carregar dados financeiros');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleManualEntry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.post('/financeiro/movimentacoes', newManual);
+      toast.success('Lançamento realizado!');
+      setShowManualModal(false);
+      setNewManual({ tipo: 'entrada', descricao: '', valor: 0 });
+      loadData();
+    } catch (err) {
+      toast.error('Erro ao realizar lançamento');
+    }
+  };
+
+  const handlePay = async (id: string) => {
+    try {
+      await api.patch(`/financeiro/contas-receber/${id}/pagar`);
+      toast.success('Baixa realizada com sucesso!');
+      loadData();
+    } catch (err) {
+      toast.error('Erro ao processar pagamento');
+    }
+  };
+
+  if (loading) return <div className="p-8 flex flex-col items-center gap-4"><Loader2 className="w-8 h-8 animate-spin text-indigo-500" /><p className="text-slate-500">Acessando cofre...</p></div>;
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500 pb-10">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900">Financeiro</h1>
+          <p className="text-slate-500 mt-1">Gestão de caixa, faturamento e recebíveis.</p>
+        </div>
+        <button 
+          onClick={() => setShowManualModal(true)}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-100"
+        >
+          <Plus className="w-4 h-4" /> Lançamento Manual
+        </button>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex justify-between items-start">
+            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded-full uppercase">Este Mês</span>
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Faturamento Realizado</p>
+            <h3 className="text-2xl font-black text-slate-900">R$ {resumo.faturamento_mes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total a Receber</p>
+            <h3 className="text-2xl font-black text-slate-900">R$ {resumo.total_receber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+            <CheckCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Recebido (Geral)</p>
+            <h3 className="text-2xl font-black text-slate-900">R$ {resumo.total_recebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex border-b border-slate-200">
+        <button 
+          onClick={() => setActiveTab('fluxo')}
+          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'fluxo' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          Fluxo de Caixa
+        </button>
+        <button 
+          onClick={() => setActiveTab('receber')}
+          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'receber' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          Contas a Receber ({contasReceber.length})
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-in slide-in-from-bottom-2 duration-300">
+        {activeTab === 'fluxo' && (
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+              <tr>
+                <th className="px-6 py-4">Data</th>
+                <th className="px-6 py-4">Descrição</th>
+                <th className="px-6 py-4">Tipo</th>
+                <th className="px-6 py-4 text-right">Valor</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {movimentacoes.map(m => (
+                <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 text-slate-500 font-medium">
+                    {new Date(m.data).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-6 py-4 font-bold text-slate-800">
+                    {m.descricao}
+                    {m.os_id && <span className="ml-2 bg-slate-100 text-[10px] px-1.5 py-0.5 rounded text-slate-400 font-mono">#{m.os_id.split('-')[0]}</span>}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`flex items-center gap-1 font-black text-[10px] uppercase ${m.tipo === 'entrada' ? 'text-emerald-600' : 'text-rose-500'}`}>
+                      {m.tipo === 'entrada' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                      {m.tipo}
+                    </span>
+                  </td>
+                  <td className={`px-6 py-4 text-right font-black ${m.tipo === 'entrada' ? 'text-slate-900' : 'text-rose-600'}`}>
+                    {m.tipo === 'saida' && '- '}R$ {Number(m.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                </tr>
+              ))}
+              {movimentacoes.length === 0 && (
+                <tr><td colSpan={4} className="p-10 text-center text-slate-300 italic">Nenhuma movimentação registrada.</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
+
+        {activeTab === 'receber' && (
+          <table className="w-full text-left">
+            <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
+              <tr>
+                <th className="px-6 py-4">OS #</th>
+                <th className="px-6 py-4">Cliente</th>
+                <th className="px-6 py-4">Data Vecto.</th>
+                <th className="px-6 py-4 text-right">Valor Perto</th>
+                <th className="px-6 py-4 text-right">Ação</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-sm">
+              {contasReceber.map(c => (
+                <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
+                  <td className="px-6 py-4 font-mono font-bold text-indigo-600">
+                    #{c.os_numero?.split('-')[0].toUpperCase()}
+                  </td>
+                  <td className="px-6 py-4 font-bold text-slate-800">{c.cliente_nome}</td>
+                  <td className="px-6 py-4 text-slate-500 font-medium">
+                    {new Date(c.created_at).toLocaleDateString('pt-BR')}
+                  </td>
+                  <td className="px-6 py-4 text-right font-black text-slate-900">
+                    R$ {Number(c.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <button 
+                      onClick={() => handlePay(c.id)}
+                      className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-lg text-xs font-black hover:bg-emerald-100 transition-all border border-emerald-100"
+                    >
+                      Baxar Pagamento
+                    </button>
+                  </td>
+                </tr>
+              ))}
+              {contasReceber.length === 0 && (
+                <tr><td colSpan={5} className="p-10 text-center text-slate-300 italic">Tudo em dia! Nenhuma conta a receber pendente.</td></tr>
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* Manual Entry Modal */}
+      {showManualModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200 overflow-hidden">
+            <div className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+              <h3 className="font-black text-slate-900 text-lg">Lançamento Manual</h3>
+            </div>
+            
+            <form onSubmit={handleManualEntry} className="p-6 space-y-4">
+              <div className="flex p-1 bg-slate-100 rounded-xl">
+                <button 
+                  type="button"
+                  onClick={() => setNewManual(prev => ({ ...prev, tipo: 'entrada' }))}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${newManual.tipo === 'entrada' ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400'}`}
+                >
+                  Entrada
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setNewManual(prev => ({ ...prev, tipo: 'saida' }))}
+                  className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${newManual.tipo === 'saida' ? 'bg-white text-rose-500 shadow-sm' : 'text-slate-400'}`}
+                >
+                  Saída
+                </button>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase">Descrição</label>
+                <input 
+                  required
+                  placeholder="Ex: Compra de Ferramentas, Aluguel..."
+                  className="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  value={newManual.descricao}
+                  onChange={e => setNewManual(v => ({ ...v, descricao: e.target.value }))}
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black text-slate-400 uppercase">Valor (R$)</label>
+                <input 
+                  required
+                  type="number"
+                  step="0.01"
+                  className="w-full mt-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl font-black text-lg focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  value={newManual.valor}
+                  onChange={e => setNewManual(v => ({ ...v, valor: Number(e.target.value) }))}
+                />
+              </div>
+
+              <div className="pt-4 flex gap-3">
+                <button 
+                  type="button" 
+                  onClick={() => setShowManualModal(false)}
+                  className="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit"
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100"
+                >
+                  Lançar Agora
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
