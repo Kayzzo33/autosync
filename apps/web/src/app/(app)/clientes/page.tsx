@@ -130,41 +130,41 @@ export default function ClientesPage() {
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900">Base de Clientes</h1>
-          <p className="text-slate-500 mt-1">Gestão de contatos e histórico da oficina.</p>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Base de Clientes</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">Gestão de contatos e histórico da oficina.</p>
         </div>
         
         <div className="flex items-center gap-4 w-full md:w-auto">
           <div className="relative w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-600" />
             <input 
               type="text" 
               placeholder="Buscar..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm"
+              className="w-full pl-10 pr-4 py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all shadow-sm dark:text-white"
             />
           </div>
           <button 
             onClick={() => setShowNewClientModal(true)}
-            className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl font-bold transition-all shadow-lg active:scale-95"
+            className="flex items-center gap-2 bg-slate-900 dark:bg-blue-600 hover:bg-slate-800 dark:hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-bold transition-all shadow-lg active:scale-95"
           >
             <Plus className="w-4 h-4" /> Novo Cliente
           </button>
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/5 rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 text-xs uppercase tracking-wider">
+            <tr className="bg-slate-50 dark:bg-white/5 border-b border-slate-200 dark:border-white/5 text-slate-500 dark:text-slate-500 text-xs uppercase tracking-wider">
               <th className="p-4 font-bold">Cliente</th>
               <th className="p-4 font-bold">Contato</th>
               <th className="p-4 font-bold text-center">Veículos</th>
               <th className="p-4 font-bold text-right">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 text-sm">
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5 text-sm">
             {isLoading && (
               <tr>
                 <td colSpan={4} className="p-12 text-center text-slate-400">
@@ -180,10 +180,10 @@ export default function ClientesPage() {
               <tr>
                 <td colSpan={4} className="p-12 text-center text-slate-400">
                   <div className="flex flex-col items-center gap-3">
-                    <p className="font-medium text-slate-600">Nenhum cliente encontrado ou erro na conexão.</p>
+                    <p className="font-medium text-slate-600 dark:text-slate-400">Nenhum cliente encontrado ou erro na conexão.</p>
                     <button 
                       onClick={() => { setIsLoading(true); fetchClientes(); }}
-                      className="text-blue-600 font-bold hover:underline py-2 px-4 bg-blue-50 rounded-xl"
+                      className="text-blue-600 dark:text-blue-400 font-bold hover:underline py-2 px-4 bg-blue-50 dark:bg-blue-500/10 rounded-xl"
                     >
                       Tentar Novamente
                     </button>
@@ -195,25 +195,25 @@ export default function ClientesPage() {
             
             {clientes.map((cli) => (
               <React.Fragment key={cli.id}>
-                <tr className={`hover:bg-slate-50 transition-colors cursor-pointer ${expandedClientId === cli.id ? 'bg-blue-50/30' : ''}`} onClick={() => toggleExpand(cli.id)}>
+                <tr className={`hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${expandedClientId === cli.id ? 'bg-blue-50/30 dark:bg-blue-500/10' : ''}`} onClick={() => toggleExpand(cli.id)}>
                   <td className="p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold shadow-md">
                         {cli.nome.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900">{cli.nome}</p>
-                        <p className="text-slate-400 text-xs">ID: {cli.id.split('-')[0]}</p>
+                        <p className="font-bold text-slate-900 dark:text-white leading-none">{cli.nome}</p>
+                        <p className="text-slate-400 dark:text-slate-600 text-xs mt-1">ID: {cli.id.split('-')[0]}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-4">
-                    <p className="text-slate-700 font-medium">{cli.telefone}</p>
-                    {cli.email && <p className="text-slate-400 text-xs">{cli.email}</p>}
+                    <p className="text-slate-700 dark:text-slate-300 font-medium leading-none">{cli.telefone}</p>
+                    {cli.email && <p className="text-slate-400 dark:text-slate-500 text-xs mt-1">{cli.email}</p>}
                   </td>
                   <td className="p-4 text-center">
-                    <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 px-2 py-1 rounded-full text-xs font-bold border border-slate-200">
-                      <CarFront className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-400 px-2 py-1 rounded-full text-xs font-bold border border-slate-200 dark:border-white/5">
+                      <CarFront className="w-3 h-3 text-blue-500" />
                       {cli.veiculos?.length ?? '...'}
                     </span>
                   </td>
@@ -224,7 +224,7 @@ export default function ClientesPage() {
                         setWhatsAppTarget({ id: cli.id, nome: cli.nome, telefone: cli.telefone });
                       }}
                       title="Enviar mensagem via WhatsApp"
-                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-600 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors border border-green-100"
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-emerald-500/10 text-green-600 dark:text-emerald-400 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors border border-green-100 dark:border-emerald-500/20"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
@@ -234,12 +234,12 @@ export default function ClientesPage() {
                     </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); }}
-                      className="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors"
+                      className="px-3 py-1.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors"
                     >
                       Perfil
                     </button>
                     <button 
-                      className="p-2 hover:bg-white rounded-lg transition-all border border-transparent hover:border-slate-200 group"
+                      className="p-2 hover:bg-slate-50 dark:hover:bg-white/5 rounded-lg transition-all border border-transparent hover:border-slate-200 dark:hover:border-white/10 group"
                       onClick={(e) => { e.stopPropagation(); toggleExpand(cli.id); }}
                     >
                       {expandedClientId === cli.id ? <ChevronUp className="w-5 h-5 text-slate-400 group-hover:text-blue-500" /> : <ChevronDown className="w-5 h-5 text-slate-400 group-hover:text-blue-500" />}
