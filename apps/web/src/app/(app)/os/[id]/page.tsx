@@ -247,25 +247,25 @@ export default function OSDetailPage() {
 
       {/* Basic Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+        <div className="bg-white dark:bg-[#0a0a0a] p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm space-y-4">
+          <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-600">
             <User className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] uppercase font-black text-slate-400">Cliente</p>
-            <h3 className="font-bold text-slate-900">{os.cliente_nome}</h3>
-            <p className="text-xs text-slate-500">{os.cliente_telefone}</p>
+            <p className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500">Cliente</p>
+            <h3 className="font-bold text-slate-900 dark:text-white">{os.cliente_nome}</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400">{os.cliente_telefone}</p>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+        <div className="bg-white dark:bg-[#0a0a0a] p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm space-y-4">
+          <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600">
             <Car className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-[10px] uppercase font-black text-slate-400">Veículo</p>
-            <h3 className="font-bold text-slate-900">{os.marca} {os.modelo}</h3>
-            <span className="bg-slate-900 text-white font-mono px-2 py-0.5 rounded text-[10px] uppercase">{os.placa}</span>
+            <p className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500">Veículo</p>
+            <h3 className="font-bold text-slate-900 dark:text-white">{os.marca} {os.modelo}</h3>
+            <span className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-mono px-2 py-0.5 rounded text-[10px] uppercase">{os.placa}</span>
           </div>
         </div>
 
@@ -295,9 +295,9 @@ export default function OSDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
           {/* Services */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#0a0a0a] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Wrench className="w-5 h-5 text-indigo-600" /> Serviços
               </h2>
               {os.status !== 'fechada' && (
@@ -310,18 +310,18 @@ export default function OSDetailPage() {
               )}
             </div>
             <table className="w-full text-left">
-              <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+              <thead className="bg-slate-50 dark:bg-white/5 text-[10px] uppercase font-black text-slate-400 dark:text-slate-500">
                 <tr>
                   <th className="px-6 py-3">Descrição</th>
                   <th className="px-6 py-3 text-right">Valor</th>
                   <th className="px-6 py-3 w-10"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                 {servicos.map(s => (
-                  <tr key={s.id} className="group hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-700">{s.descricao}</td>
-                    <td className="px-6 py-4 text-right font-black text-slate-900">R$ {Number(s.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <tr key={s.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">{s.descricao}</td>
+                    <td className="px-6 py-4 text-right font-black text-slate-900 dark:text-white">R$ {Number(s.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-right">
                       {os.status !== 'fechada' && (
                         <button 
@@ -342,9 +342,9 @@ export default function OSDetailPage() {
           </div>
 
           {/* Parts */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#0a0a0a] rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <Package className="w-5 h-5 text-amber-500" /> Peças e Peças de Reposição
               </h2>
               {os.status !== 'fechada' && (
@@ -357,7 +357,7 @@ export default function OSDetailPage() {
               )}
             </div>
             <table className="w-full text-left">
-              <thead className="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+              <thead className="bg-slate-50 dark:bg-white/5 text-[10px] uppercase font-black text-slate-400 dark:text-slate-500">
                 <tr>
                   <th className="px-6 py-3">Descrição</th>
                   <th className="px-6 py-3 text-center">Qtd</th>
@@ -366,13 +366,13 @@ export default function OSDetailPage() {
                   <th className="px-6 py-3 w-10"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-white/5">
                 {pecas.map(p => (
-                  <tr key={p.id} className="group hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-700">{p.descricao}</td>
-                    <td className="px-6 py-4 text-center font-bold text-slate-600">{p.quantidade}</td>
-                    <td className="px-6 py-4 text-right text-slate-500">R$ {Number(p.valor_unit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
-                    <td className="px-6 py-4 text-right font-black text-slate-900">R$ {(Number(p.valor_unit) * (p.quantidade || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                  <tr key={p.id} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                    <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">{p.descricao}</td>
+                    <td className="px-6 py-4 text-center font-bold text-slate-600 dark:text-slate-400">{p.quantidade}</td>
+                    <td className="px-6 py-4 text-right text-slate-500 dark:text-slate-400">R$ {Number(p.valor_unit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                    <td className="px-6 py-4 text-right font-black text-slate-900 dark:text-white">R$ {(Number(p.valor_unit) * (p.quantidade || 1)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-right">
                       {os.status !== 'fechada' && (
                         <button 
@@ -424,18 +424,18 @@ export default function OSDetailPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-6">
-            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-[#0a0a0a] p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm space-y-6">
+            <h2 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-indigo-600" /> Controle de Kilometragem
             </h2>
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+              <div className="bg-slate-50 dark:bg-white/5 p-4 rounded-xl border border-slate-100 dark:border-white/10">
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Entrada</p>
-                <p className="text-lg font-black text-slate-800 font-mono">{os.km_entrada} <span className="text-xs font-normal">km</span></p>
+                <p className="text-lg font-black text-slate-800 dark:text-white font-mono">{os.km_entrada} <span className="text-xs font-normal">km</span></p>
               </div>
-              <div className={`p-4 rounded-xl border ${os.km_saida ? 'bg-indigo-50 border-indigo-100' : 'bg-slate-50 border-slate-100'}`}>
+              <div className={`p-4 rounded-xl border ${os.km_saida ? 'bg-indigo-50 dark:bg-indigo-500/10 border-indigo-100 dark:border-indigo-500/20' : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/10'}`}>
                 <p className="text-[10px] font-black text-slate-400 uppercase mb-1">Saída</p>
-                <p className="text-lg font-black text-slate-800 font-mono">{os.km_saida || '---'} <span className="text-xs font-normal">km</span></p>
+                <p className="text-lg font-black text-slate-800 dark:text-white font-mono">{os.km_saida || '---'} <span className="text-xs font-normal">km</span></p>
               </div>
             </div>
             {os.status === 'fechada' && (
@@ -501,24 +501,24 @@ export default function OSDetailPage() {
 
       {showFecharModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#111] rounded-3xl w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="p-8 text-center space-y-6">
-              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
                 <CheckCircle className="w-10 h-10" />
               </div>
               <div>
-                <h3 className="text-2xl font-black text-slate-900">Finalizar Ordem de Serviço</h3>
-                <p className="text-slate-500 mt-2 leading-relaxed">Confirme a kilometragem final de saída do veículo para encerrar os trabalhos e gerar a cobrança.</p>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">Finalizar Ordem de Serviço</h3>
+                <p className="text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">Confirme a kilometragem final de saída do veículo para encerrar os trabalhos e gerar a cobrança.</p>
               </div>
               
-              <div className="text-left bg-slate-50 p-6 rounded-2xl border border-slate-100 space-y-4">
+              <div className="text-left bg-slate-50 dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4">
                 <div>
-                  <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Atenção: KM de Saída</label>
+                  <label className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Atenção: KM de Saída</label>
                   <input 
                     required 
                     type="text"
                     inputMode="numeric"
-                    className="w-full mt-2 px-4 py-4 bg-white border border-slate-200 rounded-xl font-black text-2xl text-slate-900 font-mono focus:ring-4 focus:ring-emerald-100 outline-none transition-all"
+                    className="w-full mt-2 px-4 py-4 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl font-black text-2xl text-slate-900 dark:text-white font-mono focus:ring-4 focus:ring-emerald-100 dark:focus:ring-emerald-900/50 outline-none transition-all"
                     placeholder={String(os.km_entrada || 0)}
                     value={kmSaida}
                     onChange={e => setKmSaida(e.target.value)}
@@ -530,8 +530,8 @@ export default function OSDetailPage() {
               </div>
 
               <div className="flex gap-3">
-                <button onClick={() => setShowFecharModal(false)} className="flex-1 py-4 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors">Voltar</button>
-                <button onClick={handleFecharOS} className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-100 active:scale-95 transition-all">Encerrar & Salvar</button>
+                <button onClick={() => setShowFecharModal(false)} className="flex-1 py-4 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">Voltar</button>
+                <button onClick={handleFecharOS} className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-100 dark:shadow-emerald-900/20 active:scale-95 transition-all">Encerrar & Salvar</button>
               </div>
             </div>
           </div>

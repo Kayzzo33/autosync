@@ -112,6 +112,7 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const bodySchema = z.object({
         veiculo_id: z.string().uuid('Veículo inválido'),
         lead_id: z.string().uuid().optional().nullable(),
+        mecanico_id: z.string().uuid().optional().nullable().or(z.literal('')),
         descricao: z.string().min(1, 'Descrição é obrigatória'),
         valor_total: z.number().default(0),
         km_entrada: z.number().default(0),
@@ -124,9 +125,11 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           throw new Error('Veículo não encontrado ou não pertence a esta oficina');
         }
 
+        const mecanicoReal = (body.mecanico_id === '' || !body.mecanico_id) ? sub : body.mecanico_id;
+
         const inserted = await t`
           INSERT INTO ordens_servico (tenant_id, veiculo_id, lead_id, mecanico_id, status, descricao, valor_total, km_entrada)
-          VALUES (${tenant_id}, ${body.veiculo_id}, ${body.lead_id || null}, ${sub}, 'aberta', ${body.descricao}, ${body.valor_total}, ${body.km_entrada})
+          VALUES (${tenant_id}, ${body.veiculo_id}, ${body.lead_id || null}, ${mecanicoReal}, 'aberta', ${body.descricao}, ${body.valor_total}, ${body.km_entrada})
           RETURNING id, public_token
         `;
         return inserted[0];
