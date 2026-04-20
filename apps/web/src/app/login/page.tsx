@@ -16,7 +16,7 @@ export default function LoginPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { data } = await api.post('/auth/login', { email, password });
+      const { data } = await api.post('/auth/login', { email: email.trim(), password });
       toast.success('Login bem sucedido!');
       login(data.accessToken, data.user);
     } catch (err: any) {
