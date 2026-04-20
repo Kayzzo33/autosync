@@ -108,7 +108,7 @@ export default function OSPage() {
       setShowNewOS(false);
       setStep(1);
       setFormData({ clientId: '', vehicleId: '', mecanicoId: '', descricao: '', kmEntrada: 0 });
-      router.push(`/os/${data.os_id}`);
+      router.push(`/os/${data.os.id}`);
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Erro ao abrir OS');
     } finally {

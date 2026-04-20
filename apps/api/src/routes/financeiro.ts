@@ -71,9 +71,17 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const data = bodySchema.parse(req.body);
 
       const mov = await withTenantRls(tenant_id, async (t) => {
+        // Garantir Categoria Padrão para Lançamentos Manuais
+        const [categoria] = await t`
+          INSERT INTO categorias_movimentacao (tenant_id, nome, tipo)
+          VALUES (${tenant_id}, 'Lançamento Manual', ${data.tipo})
+          ON CONFLICT (tenant_id, nome) DO UPDATE SET nome = EXCLUDED.nome
+          RETURNING id
+        `;
+
         const resp = await t`
-          INSERT INTO movimentacoes_financeiras (tenant_id, valor, tipo, descricao, data)
-          VALUES (${tenant_id}, ${data.valor}, ${data.tipo}, ${data.descricao}, ${data.data || sql`NOW()`})
+          INSERT INTO movimentacoes_financeiras (tenant_id, valor, tipo, descricao, data, categoria_id)
+          VALUES (${tenant_id}, ${data.valor}, ${data.tipo}, ${data.descricao}, ${data.data || sql`NOW()`}, ${categoria.id})
           RETURNING *
         `;
         return resp[0];

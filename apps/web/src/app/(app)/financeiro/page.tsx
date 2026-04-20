@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/services/api';
 import { toast } from 'sonner';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 interface Movimentacao {
   id: string;
@@ -36,6 +37,7 @@ export default function FinanceiroPage() {
   const [activeTab, setActiveTab] = useState<'fluxo' | 'receber'>('fluxo');
   const [showManualModal, setShowManualModal] = useState(false);
   const [newManual, setNewManual] = useState({ tipo: 'entrada', descricao: '', valor: 0 });
+  const [chartData, setChartData] = useState<any[]>([]);
 
   const loadData = async () => {
     try {
@@ -45,8 +47,22 @@ export default function FinanceiroPage() {
         api.get('/financeiro/contas-receber')
       ]);
       setResumo(resumoRes.data);
-      setMovimentacoes(movsRes.data.movimentacoes);
+      const movs = movsRes.data.movimentacoes;
+      setMovimentacoes(movs);
       setContasReceber(contasRes.data.contas);
+      
+      // Process chart data (Group by date)
+      const grouped = movs.reduce((acc: any, curr: any) => {
+        const dateStr = new Date(curr.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+        if (!acc[dateStr]) acc[dateStr] = { name: dateStr, entrada: 0, saida: 0 };
+        if (curr.tipo === 'entrada') acc[dateStr].entrada += Number(curr.valor);
+        if (curr.tipo === 'saida') acc[dateStr].saida += Number(curr.valor);
+        return acc;
+      }, {});
+      
+      // Sort by date roughly (since it's recent 20 it might be mostly sorted desc, we reverse to asc for chart)
+      setChartData(Object.values(grouped).reverse());
+      
     } catch (err) {
       toast.error('Erro ao carregar dados financeiros');
     } finally {
@@ -134,6 +150,41 @@ export default function FinanceiroPage() {
           </div>
         </div>
       </div>
+      
+      {/* Chart Section */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Resumo Visual (Últimas Movimentações)</h3>
+        <div className="h-64 w-full">
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#64748b' }} tickFormatter={(value) => `R$ ${value}`} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(128, 128, 128, 0.1)' }}
+                  contentStyle={{ 
+                    borderRadius: '12px', 
+                    border: '1px solid rgba(128, 128, 128, 0.2)', 
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                    backgroundColor: 'var(--card, #fff)',
+                    color: 'var(--foreground, #171717)'
+                  }}
+                  itemStyle={{ color: 'var(--foreground, #171717)' }}
+                  formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
+                />
+                <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+                <Bar dataKey="entrada" name="Entradas" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                <Bar dataKey="saida" name="Saídas" fill="#f43f5e" radius={[4, 4, 0, 0]} maxBarSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-slate-400 italic text-sm">
+              Sem dados suficientes para exibir o gráfico.
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-slate-200">
@@ -163,9 +214,9 @@ export default function FinanceiroPage() {
                 <th className="px-6 py-4 text-right">Valor</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#1a1a1a] text-sm">
               {movimentacoes.map(m => (
-                <tr key={m.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={m.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 text-slate-500 font-medium">
                     {new Date(m.data).toLocaleDateString('pt-BR')}
                   </td>
@@ -202,9 +253,9 @@ export default function FinanceiroPage() {
                 <th className="px-6 py-4 text-right">Ação</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100 dark:divide-[#1a1a1a] text-sm">
               {contasReceber.map(c => (
-                <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 font-mono font-bold text-indigo-600">
                     #{c.os_numero?.split('-')[0].toUpperCase()}
                   </td>
