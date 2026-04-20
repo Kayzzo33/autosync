@@ -1,30 +1,21 @@
-import { Queue } from 'bullmq';
-import Redis from 'ioredis';
+// ─────────────────────────────────────────────────────────────────────────────
+// CRON — Revisão Diária de Veículos
+// ─────────────────────────────────────────────────────────────────────────────
+// ISOLADO: BullMQ só é usado quando ENABLE_BULLMQ=true.
+// Em modo MVP, apenas faz a query no banco e loga — sem enfileirar jobs.
+// ─────────────────────────────────────────────────────────────────────────────
 import 'dotenv/config';
 import postgres from 'postgres';
 
-const redisHost = process.env.REDIS_HOST!;
-const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
-const redisPassword = process.env.REDIS_PASSWORD || '';
-
-const connection = new Redis({
-  host: redisHost,
-  port: redisPort,
-  password: redisPassword,
-  maxRetriesPerRequest: null,
-});
+const BULLMQ_ENABLED = process.env.ENABLE_BULLMQ === 'true';
 
 const sql = postgres(process.env.DATABASE_URL!);
-const whatsappQueue = new Queue('whatsapp', { connection });
 
-// Função principal de Revisão. Pode ser invocada manualmente ou rodar sozinha.
+// Função principal de Revisão. Pode ser invocada manualmente ou pelo worker.
 export async function runCronRevisaoDiaria() {
   console.log('[CRON] Iniciando varredura diária de Revisão (KM) às 09:00...');
 
   try {
-    // Busca veículos cuja quilometragem estimada/atual seja maior ou igual à de revisão, 
-    // E que NÃO receberam mensagem de revisão nos últimos 60 dias (para não spammar).
-    
     const veiculosVencidos = await sql`
       SELECT v.id as veiculo_id, v.tenant_id, v.modelo, c.telefone, c.nome 
       FROM veiculos v
@@ -42,8 +33,29 @@ export async function runCronRevisaoDiaria() {
 
     console.log(`[CRON] Encontrados ${veiculosVencidos.length} veículos para notificação de revisão.`);
 
+    if (!BULLMQ_ENABLED) {
+      // MVP: apenas loga os veículos encontrados, sem enfileirar
+      console.log('[CRON] BullMQ desativado — jobs NÃO enfileirados. Ative ENABLE_BULLMQ=true para envio automático.');
+      for (const v of veiculosVencidos) {
+        console.log(`  [CRON] Pendente: ${v.nome} (${v.modelo}) — ${v.telefone}`);
+      }
+      return;
+    }
+
+    // ── MODO PRODUÇÃO: BullMQ ativo ──────────────────────────────────────────
+    const { Queue } = require('bullmq');
+    const Redis = require('ioredis');
+
+    const connection = new Redis({
+      host: process.env.REDIS_HOST!,
+      port: parseInt(process.env.REDIS_PORT || '6379', 10),
+      password: process.env.REDIS_PASSWORD || '',
+      maxRetriesPerRequest: null,
+    });
+
+    const whatsappQueue = new Queue('whatsapp', { connection });
+
     for (const v of veiculosVencidos) {
-      // Disparamos enfileirando no BullMQ. Ele respeitará a limitação de Rate Limit automaticamente!
       const mensagem = `Olá *${v.nome}*, seu *${v.modelo}* pode estar perto da revisão! 🔧 Que tal garantirmos a segurança da sua família prestando uma manutenção preventiva na nossa oficina?`;
 
       await whatsappQueue.add('notify-revisao', {
@@ -54,12 +66,14 @@ export async function runCronRevisaoDiaria() {
       });
     }
 
-  } catch(error) {
+    await connection.quit();
+
+  } catch (error) {
     console.error('[CRON] Falha ao rodar varredura de Revisão:', error);
   }
 }
 
-// Se o arquivo for rodado diretamente via CLI, testa a function:
+// Se rodado diretamente via CLI, testa a function:
 if (require.main === module) {
   runCronRevisaoDiaria().then(() => {
     console.log('[CRON] Rotina manual de testes finalizada.');

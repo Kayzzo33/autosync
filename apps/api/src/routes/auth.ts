@@ -123,18 +123,20 @@ const authRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
     const rt = result[0];
 
-    if (new Date() > new Date(rt.expiresAt)) {
+    // expires_at: snake_case (postgres.js sem transform camelCase)
+    if (new Date() > new Date(rt.expires_at)) {
       await sql`DELETE FROM refresh_tokens WHERE id = ${rt.id}`;
       return reply.status(401).send({ error: 'Sessão expirada' });
     }
 
-    // Identificar o usuário
-    const userResult = await sql`SELECT id, tenant_id, perfil FROM users WHERE id = ${rt.userId} AND ativo = true`;
+    // user_id: snake_case (postgres.js sem transform camelCase)
+    const userResult = await sql`SELECT id, tenant_id, perfil FROM users WHERE id = ${rt.user_id} AND ativo = true`;
     if (userResult.length === 0) {
       return reply.status(401).send({ error: 'Usuário não existe ou inativo' });
     }
 
     const currUser = userResult[0];
+
 
     // Deletar o token antigo e gerar um novo (Rotate refresh token)
     await sql`DELETE FROM refresh_tokens WHERE id = ${rt.id}`;
@@ -212,7 +214,7 @@ const authRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return { user: data };
     } catch (err: any) {
       app.log.error(`[AUTH/ME ERROR] ${err.message}`);
-      return reply.status(500).send({ error: 'Erro ao validar sua sessão.' });
+      return reply.status(500).send({ error: 'Erro ao validar sua sessão.', details: err.message, stack: err.stack });
     }
   });
 };

@@ -130,7 +130,7 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         return inserted[0];
       });
 
-      await whatsappQueue.add('notify-aberta', { osId: os.id, tenant_id, veiculoId: body.veiculo_id });
+      await whatsappQueue?.add('notify-aberta', { osId: os.id, tenant_id, veiculoId: body.veiculo_id });
       return reply.status(201).send({ message: 'OS Aberta com sucesso', os });
     } catch (err: any) {
       req.log.error({ err, body: req.body }, 'Erro ao abrir OS');
@@ -220,11 +220,11 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       });
 
       if (status === 'pronta' && result?.public_token) {
-        await whatsappQueue.add('notify-pronta', { osId: id, tenant_id, token: result.public_token });
+        await whatsappQueue?.add('notify-pronta', { osId: id, tenant_id, token: result.public_token });
       }
 
       if (status === 'fechada') {
-        await whatsappQueue.add('notify-nps', { osId: id, tenant_id }, { delay: 24 * 60 * 60 * 1000 });
+        await whatsappQueue?.add('notify-nps', { osId: id, tenant_id }, { delay: 24 * 60 * 60 * 1000 });
       }
 
       return reply.send({ message: 'Status atualizado com sucesso' });
@@ -326,7 +326,7 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       });
 
       // Dispara NPS agendado para 24 horas DEPOIS do fechamento (delay em ms)
-      await whatsappQueue.add('notify-nps', { osId: id, tenant_id }, { delay: 24 * 60 * 60 * 1000 });
+      await whatsappQueue?.add('notify-nps', { osId: id, tenant_id }, { delay: 24 * 60 * 60 * 1000 });
 
       return reply.send({ message: 'O.S. finalizada com sucesso!', total: result.valor_total });
     } catch (err: any) {

@@ -13,6 +13,7 @@ export const sql = postgres(process.env.DATABASE_URL!, {
   onnotice: () => {}, // Silencia notices para evitar poluição de logs
   timeout: 15, // Timeout global para queries
   ssl: 'require', // Obrigatório para Supabase fora de redes locais
+  prepare: false, // OBRIGATÓRIO PARA PGBOUNCER TRANSACTION MODE
 });
 
 /**

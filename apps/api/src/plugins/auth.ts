@@ -29,11 +29,9 @@ declare module 'fastify' {
 
 const authPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.register(fastifyJwt, {
+    // Apenas lê o JWT do header Authorization: Bearer <token>
+    // O refreshToken é um hex aleatório no cookie — não é um JWT
     secret: process.env.JWT_SECRET || 'supersecret_change_in_prod',
-    cookie: {
-      cookieName: 'refreshToken',
-      signed: false,
-    },
   });
 
   fastify.register(fastifyCookie, {
@@ -45,7 +43,9 @@ const authPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     try {
       await request.jwtVerify();
     } catch (err) {
-      reply.status(401).send({ error: 'Não autorizado ou token expirado.' });
+      // `return` é obrigatório: sem ele, Fastify continua para o handler da rota
+      // mesmo após o 401, causando dupla resposta (dados + erro simultâneos).
+      return reply.status(401).send({ error: 'Não autorizado ou token expirado.' });
     }
   });
 

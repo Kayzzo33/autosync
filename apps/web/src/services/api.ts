@@ -61,7 +61,7 @@ api.interceptors.response.use(
           { withCredentials: true }
         );
 
-        const newToken = data.token;
+        const newToken = data.accessToken;
         Cookies.set('autosync_token', newToken);
         
         // Atualiza o header padrão e o da requisição original

@@ -28,7 +28,7 @@ if (process.env.SENTRY_DSN) {
   console.log('[Sentry] DSN não encontrado. Rodando sem monitoramento de erros.');
 }
 
-import Fastify, { FastifyReply, FastifyRequest } from 'fastify';
+import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 
@@ -90,6 +90,7 @@ import integracoesRoutes from './routes/integracoes';
 import dashboardRoutes from './routes/dashboard';
 import mecanicosRoutes from './routes/mecanicos';
 import tenantsRoutes from './routes/tenants';
+import messagesRoutes from './routes/messages';
 
 if (process.env.JWT_SECRET!.length < 32) {
   console.log('WARNING: JWT_SECRET curto (<32 chars). Aceitável para dev, mas RECOMENDADO aumentar.');
@@ -134,26 +135,13 @@ app.register(async (instance) => {
   instance.register(integracoesRoutes, { prefix: '/integracoes' });
   instance.register(dashboardRoutes, { prefix: '/dashboard' });
   instance.register(mecanicosRoutes, { prefix: '/mecanicos' });
-  instance.register(tenantsRoutes, { prefix: '/tenants' });
+  instance.register(tenantsRoutes,   { prefix: '/tenants' });
+  instance.register(messagesRoutes,  { prefix: '/messages' });
 });
 
-// Hook de rotas protegidas
-// Extrai o tenant do jwt se tiver e aplica localmente
-// Para as rotas protegidas (todas as não-*auth* / não-*health*)
-app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-  const url = request.url;
-  if (url.startsWith('/health') || url.startsWith('/auth') || url.startsWith('/tv')) {
-    return; // Ignora injeção em rotas públicas ou de auth
-  }
-
-  try {
-    // Valida JWT
-    await request.jwtVerify();
-    // Neste momento, request.user já possui sub, tenantId, etc.
-  } catch (err) {
-    return reply.status(401).send({ error: 'Não autorizado.' });
-  }
-});
+// PROTEÇÃO POR ROTA: cada rota protegida usa onRequest: [app.verifyJwt]
+// O hook global foi removido — causava verificação JWT dupla (global + por rota),
+// gerando respostas inconsistentes (dados + erro simultâneos) quando o token expirava.
 
 app.get('/health', async () => {
   return { status: "ok", timestamp: Date.now() };

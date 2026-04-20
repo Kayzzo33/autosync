@@ -9,5 +9,8 @@
   "scripts": {
     "dev": "npm run dev --workspaces",
     "build": "npm run build --workspaces"
+  },
+  "dependencies": {
+    "tesseract.js": "^7.0.0"
   }
 }
