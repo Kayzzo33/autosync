@@ -167,13 +167,32 @@ export default function OSDetailPage() {
     if (!printRef.current) return;
     const w = window.open('', '_blank');
     if (!w) return;
-    w.document.write('<html><head><title>Nota Fiscal</title>');
-    w.document.write('<style>body{font-family:Arial,sans-serif;padding:24px;color:#111}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}h2{margin:0}.total{font-size:1.4rem;font-weight:900}</style>');
-    w.document.write('</head><body>');
-    w.document.write(printRef.current.innerHTML);
-    w.document.write('</body></html>');
+    w.document.write(`
+      <html>
+        <head>
+          <title>Recibo</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            @media print {
+              body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+            body { font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; }
+          </style>
+        </head>
+        <body class="bg-white">
+          <div class="p-8">
+            ${printRef.current.innerHTML}
+          </div>
+          <script>
+            // Wait for Tailwind to process classes before printing
+            setTimeout(() => {
+              window.print();
+            }, 800);
+          </script>
+        </body>
+      </html>
+    `);
     w.document.close();
-    w.print();
   };
 
   if (loading) return <div className="p-8">Carregando O.S...</div>;
