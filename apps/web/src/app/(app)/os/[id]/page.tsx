@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
-  ArrowLeft, Calendar, User, Car, Settings, 
-  Plus, Trash2, CheckCircle, Clock, 
-  Wrench, Package, DollarSign, Save, ChevronDown,
-  Info, AlertCircle, TrendingUp
+  ArrowLeft, User, Car, Settings,
+  Plus, Trash2, CheckCircle,
+  Wrench, Package, ChevronDown,
+  Info, AlertCircle, TrendingUp, Printer, UserCog, X
 } from 'lucide-react';
 import { api } from '@/services/api';
 import { toast } from 'sonner';
@@ -35,33 +35,43 @@ interface OS {
   valor_total: number;
 }
 
+interface Mecanico { id: string; nome: string; especialidade: string | null; ativo: boolean; }
+
 export default function OSDetailPage() {
   const { id } = useParams();
   const router = useRouter();
+  const printRef = useRef<HTMLDivElement>(null);
   
   const [os, setOs] = useState<OS | null>(null);
   const [servicos, setServicos] = useState<Item[]>([]);
   const [pecas, setPecas] = useState<Item[]>([]);
+  const [mecanicos, setMecanicos] = useState<Mecanico[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [showServicoModal, setShowServicoModal] = useState(false);
   const [showPecaModal, setShowPecaModal] = useState(false);
   const [showFecharModal, setShowFecharModal] = useState(false);
+  const [showTrocarMecModal, setShowTrocarMecModal] = useState(false);
+  const [showNotaFiscal, setShowNotaFiscal] = useState(false);
+  const [mecSelecionado, setMecSelecionado] = useState('');
   
-  const [newServico, setNewServico] = useState({ descricao: '', valor: 0 });
-  const [newPeca, setNewPeca] = useState({ descricao: '', quantidade: 1, valor_unit: 0 });
-  const [kmSaida, setKmSaida] = useState(0);
+  // Usar string para evitar o bug do zero fixo nos inputs
+  const [newServico, setNewServico] = useState({ descricao: '', valor: '' });
+  const [newPeca, setNewPeca] = useState({ descricao: '', quantidade: '1', valor_unit: '' });
+  const [kmSaida, setKmSaida] = useState('');
 
   const loadData = async () => {
     try {
-      const [osRes, itemsRes] = await Promise.all([
+      const [osRes, itemsRes, mecRes] = await Promise.all([
         api.get(`/os/${id}`),
-        api.get(`/os/${id}/itens`)
+        api.get(`/os/${id}/itens`),
+        api.get('/mecanicos')
       ]);
       setOs(osRes.data.os);
       setServicos(itemsRes.data.servicos);
       setPecas(itemsRes.data.pecas);
-      if (osRes.data.os.km_entrada) setKmSaida(osRes.data.os.km_entrada);
+      setMecanicos(mecRes.data.mecanicos || []);
+      if (osRes.data.os.km_entrada) setKmSaida(String(osRes.data.os.km_entrada));
     } catch (err) {
       toast.error('Erro ao carregar detalhes da OS');
     } finally {
@@ -69,9 +79,7 @@ export default function OSDetailPage() {
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
+  useEffect(() => { loadData(); }, [id]);
 
   const handleUpdateStatus = async (status: string) => {
     try {
@@ -85,29 +93,48 @@ export default function OSDetailPage() {
 
   const handleAddServico = async (e: React.FormEvent) => {
     e.preventDefault();
+    const valorNum = parseFloat(String(newServico.valor).replace(',', '.'));
+    if (isNaN(valorNum) || valorNum <= 0) { toast.error('Informe um valor válido'); return; }
     try {
-      await api.post(`/os/${id}/servicos`, { ...newServico, quantidade: 1 });
-      toast.success('Serviço adicionado');
+      await api.post(`/os/${id}/servicos`, { descricao: newServico.descricao, valor: valorNum, quantidade: 1 });
+      toast.success('Serviço adicionado!');
       setShowServicoModal(false);
-      setNewServico({ descricao: '', valor: 0 });
+      setNewServico({ descricao: '', valor: '' });
       loadData();
-    } catch (err) {
-      toast.error('Erro ao adicionar serviço');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Erro ao adicionar serviço');
     }
   };
 
   const handleAddPeca = async (e: React.FormEvent) => {
     e.preventDefault();
+    const valorNum = parseFloat(String(newPeca.valor_unit).replace(',', '.'));
+    const qtd = parseInt(String(newPeca.quantidade)) || 1;
+    if (isNaN(valorNum) || valorNum <= 0) { toast.error('Informe um valor válido'); return; }
     try {
-      await api.post(`/os/${id}/pecas`, newPeca);
-      toast.success('Peça adicionada');
+      await api.post(`/os/${id}/pecas`, { descricao: newPeca.descricao, quantidade: qtd, valor_unit: valorNum });
+      toast.success('Peça adicionada!');
       setShowPecaModal(false);
-      setNewPeca({ descricao: '', quantidade: 1, valor_unit: 0 });
+      setNewPeca({ descricao: '', quantidade: '1', valor_unit: '' });
       loadData();
-    } catch (err) {
-      toast.error('Erro ao adicionar peça');
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Erro ao adicionar peça');
     }
   };
+
+  const handleTrocarMecanico = async () => {
+    if (!mecSelecionado) { toast.error('Selecione um mecânico'); return; }
+    try {
+      await api.patch(`/os/${id}/mecanico`, { mecanico_id: mecSelecionado });
+      toast.success('Responsável atualizado!');
+      setShowTrocarMecModal(false);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Erro ao trocar mecânico');
+    }
+  };
+
+
 
   const handleDeleteItem = async (type: 'servicos' | 'pecas', itemId: string) => {
     try {
@@ -120,17 +147,33 @@ export default function OSDetailPage() {
   };
 
   const handleFecharOS = async () => {
+    const kmNum = parseInt(String(kmSaida)) || 0;
+    if (kmNum < (os?.km_entrada || 0)) {
+      toast.error('KM de saída não pode ser menor que entrada');
+      return;
+    }
     try {
-      if (kmSaida < (os?.km_entrada || 0)) {
-        toast.error('KM de saída não pode ser menor que entrada');
-        return;
-      }
-      await api.patch(`/os/${id}/fechar`, { km_saida: kmSaida });
+      await api.patch(`/os/${id}/fechar`, { km_saida: kmNum });
       toast.success('OS Fechada com sucesso!');
-      router.push('/os');
+      setShowFecharModal(false);
+      await loadData();
+      setShowNotaFiscal(true);
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Erro ao fechar OS');
     }
+  };
+
+  const handlePrint = () => {
+    if (!printRef.current) return;
+    const w = window.open('', '_blank');
+    if (!w) return;
+    w.document.write('<html><head><title>Nota Fiscal</title>');
+    w.document.write('<style>body{font-family:Arial,sans-serif;padding:24px;color:#111}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f5f5f5}h2{margin:0}.total{font-size:1.4rem;font-weight:900}</style>');
+    w.document.write('</head><body>');
+    w.document.write(printRef.current.innerHTML);
+    w.document.write('</body></html>');
+    w.document.close();
+    w.print();
   };
 
   if (loading) return <div className="p-8">Carregando O.S...</div>;
@@ -226,13 +269,23 @@ export default function OSDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-            <Settings className="w-5 h-5" />
+        <div className="bg-white dark:bg-[#0a0a0a] p-6 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm space-y-3">
+          <div className="flex items-start justify-between">
+            <div className="w-10 h-10 bg-amber-50 dark:bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600">
+              <Settings className="w-5 h-5" />
+            </div>
+            {os.status !== 'fechada' && (
+              <button
+                onClick={() => { setMecSelecionado(''); setShowTrocarMecModal(true); }}
+                className="flex items-center gap-1 text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-700 transition-colors"
+              >
+                <UserCog className="w-3 h-3" /> Trocar
+              </button>
+            )}
           </div>
           <div>
-            <p className="text-[10px] uppercase font-black text-slate-400">Responsável</p>
-            <h3 className="font-bold text-slate-900">{os.mecanico_nome || 'N/A'}</h3>
+            <p className="text-[10px] uppercase font-black text-slate-400 dark:text-slate-500">Responsável</p>
+            <h3 className="font-bold text-slate-900 dark:text-white">{os.mecanico_nome || 'Não designado'}</h3>
             <p className="text-xs text-slate-500">Técnico designado</p>
           </div>
         </div>
@@ -406,11 +459,11 @@ export default function OSDetailPage() {
             <form onSubmit={handleAddServico} className="p-6 space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">Descrição do Serviço</label>
-                <input required className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" value={newServico.descricao} onChange={e => setNewServico(p => ({ ...p, descricao: e.target.value }))} />
+                <input required className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300" value={newServico.descricao} onChange={e => setNewServico(p => ({ ...p, descricao: e.target.value }))} placeholder="Ex: Troca de óleo" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">Valor (R$)</label>
-                <input required type="number" step="0.01" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" value={newServico.valor} onChange={e => setNewServico(p => ({ ...p, valor: Number(e.target.value) }))} />
+                <input required type="text" inputMode="decimal" placeholder="0,00" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300" value={newServico.valor} onChange={e => setNewServico(p => ({ ...p, valor: e.target.value }))} />
               </div>
               <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100">Adicionar à O.S.</button>
             </form>
@@ -433,11 +486,11 @@ export default function OSDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Quantidade</label>
-                  <input required type="number" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" value={newPeca.quantidade} onChange={e => setNewPeca(p => ({ ...p, quantidade: Number(e.target.value) }))} />
+                  <input required type="text" inputMode="numeric" placeholder="1" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300" value={newPeca.quantidade} onChange={e => setNewPeca(p => ({ ...p, quantidade: e.target.value }))} />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-500 uppercase">Valor Unit. (R$)</label>
-                  <input required type="number" step="0.01" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" value={newPeca.valor_unit} onChange={e => setNewPeca(p => ({ ...p, valor_unit: Number(e.target.value) }))} />
+                  <input required type="text" inputMode="decimal" placeholder="0,00" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300" value={newPeca.valor_unit} onChange={e => setNewPeca(p => ({ ...p, valor_unit: e.target.value }))} />
                 </div>
               </div>
               <button type="submit" className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-100">Adicionar à O.S.</button>
@@ -463,11 +516,12 @@ export default function OSDetailPage() {
                   <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Atenção: KM de Saída</label>
                   <input 
                     required 
-                    type="number" 
+                    type="text"
+                    inputMode="numeric"
                     className="w-full mt-2 px-4 py-4 bg-white border border-slate-200 rounded-xl font-black text-2xl text-slate-900 font-mono focus:ring-4 focus:ring-emerald-100 outline-none transition-all"
-                    placeholder="0"
+                    placeholder={String(os.km_entrada || 0)}
                     value={kmSaida}
-                    onChange={e => setKmSaida(Number(e.target.value))}
+                    onChange={e => setKmSaida(e.target.value)}
                   />
                   <p className="text-[10px] text-slate-400 mt-2 font-bold flex items-center gap-1">
                     <Info className="w-3 h-3 text-indigo-400" /> KM de entrada registrado: {os.km_entrada} km
@@ -479,6 +533,137 @@ export default function OSDetailPage() {
                 <button onClick={() => setShowFecharModal(false)} className="flex-1 py-4 border border-slate-200 text-slate-600 rounded-xl font-bold hover:bg-slate-50 transition-colors">Voltar</button>
                 <button onClick={handleFecharOS} className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-100 active:scale-95 transition-all">Encerrar & Salvar</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Trocar Mecânico */}
+      {showTrocarMecModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-[#111] rounded-3xl w-full max-w-sm shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+              <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2"><UserCog className="w-5 h-5 text-indigo-500" /> Trocar Responsável</h3>
+              <button onClick={() => setShowTrocarMecModal(false)}><X className="w-5 h-5 text-slate-400" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Selecione o novo mecânico responsável por esta O.S.</p>
+              <select
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:ring-2 focus:ring-indigo-400 dark:text-white"
+                value={mecSelecionado}
+                onChange={e => setMecSelecionado(e.target.value)}
+              >
+                <option value="">-- Selecione --</option>
+                {mecanicos.filter(m => m.ativo).map(m => (
+                  <option key={m.id} value={m.id}>{m.nome}{m.especialidade ? ` — ${m.especialidade}` : ''}</option>
+                ))}
+              </select>
+              <div className="flex gap-3 pt-2">
+                <button onClick={() => setShowTrocarMecModal(false)} className="flex-1 py-3 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 rounded-xl font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">Cancelar</button>
+                <button onClick={handleTrocarMecanico} className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all active:scale-95">Confirmar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Nota Fiscal */}
+      {showNotaFiscal && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl animate-in zoom-in-95 duration-200 my-4">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="text-xl font-black text-slate-900 flex items-center gap-2"><Printer className="w-5 h-5 text-emerald-600" /> Nota de Serviço</h3>
+              <div className="flex gap-2">
+                <button onClick={handlePrint} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all">
+                  <Printer className="w-4 h-4" /> Imprimir / PDF
+                </button>
+                <button onClick={() => { setShowNotaFiscal(false); router.push('/os'); }} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                  <X className="w-5 h-5 text-slate-400" />
+                </button>
+              </div>
+            </div>
+            {/* Área de Impressão */}
+            <div ref={printRef} className="p-8 space-y-6 text-sm text-slate-800">
+              {/* Cabeçalho */}
+              <div className="text-center border-b border-slate-200 pb-6">
+                <h1 className="text-2xl font-black text-slate-900">ORDEM DE SERVIÇO</h1>
+                <p className="text-slate-500 text-xs mt-1">AutoSync — Sistema de Gestão de Oficinas</p>
+                <p className="text-xs text-slate-400 mt-1">OS #{os.id.split('-')[0].toUpperCase()} • Emitida em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
+              </div>
+              {/* Grid de Dados */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Cliente</p>
+                  <p className="font-bold text-slate-900">{os.cliente_nome}</p>
+                  <p className="text-slate-500">{os.cliente_telefone}</p>
+                </div>
+                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Veículo</p>
+                  <p className="font-bold text-slate-900">{os.marca} {os.modelo}</p>
+                  <span className="inline-block bg-slate-900 text-white font-mono px-2 py-0.5 rounded text-[10px] uppercase">{os.placa}</span>
+                </div>
+                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Responsável Técnico</p>
+                  <p className="font-bold text-slate-900">{os.mecanico_nome || '—'}</p>
+                </div>
+                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Kilometragem</p>
+                  <p className="text-slate-700">Entrada: <span className="font-bold">{os.km_entrada} km</span></p>
+                  <p className="text-slate-700">Saída: <span className="font-bold">{os.km_saida || '—'} km</span></p>
+                </div>
+              </div>
+              {/* Serviços */}
+              {servicos.length > 0 && (
+                <div>
+                  <h3 className="font-black text-slate-900 mb-2 flex items-center gap-2"><Wrench className="w-4 h-4 text-indigo-500" /> Serviços Realizados</h3>
+                  <table className="w-full border border-slate-200 rounded-xl overflow-hidden text-xs">
+                    <thead><tr className="bg-slate-100"><th className="p-2 text-left">Descrição</th><th className="p-2 text-right">Valor</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {servicos.map(s => (
+                        <tr key={s.id}><td className="p-2">{s.descricao}</td><td className="p-2 text-right font-bold">R$ {Number(s.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {/* Peças */}
+              {pecas.length > 0 && (
+                <div>
+                  <h3 className="font-black text-slate-900 mb-2 flex items-center gap-2"><Package className="w-4 h-4 text-amber-500" /> Peças de Reposição</h3>
+                  <table className="w-full border border-slate-200 rounded-xl overflow-hidden text-xs">
+                    <thead><tr className="bg-slate-100"><th className="p-2 text-left">Peça</th><th className="p-2 text-center">Qtd</th><th className="p-2 text-right">Unit.</th><th className="p-2 text-right">Total</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {pecas.map(p => (
+                        <tr key={p.id}><td className="p-2">{p.descricao}</td><td className="p-2 text-center">{p.quantidade}</td><td className="p-2 text-right">R$ {Number(p.valor_unit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td><td className="p-2 text-right font-bold">R$ {(Number(p.valor_unit) * p.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+              {/* Totais */}
+              <div className="bg-indigo-700 text-white p-6 rounded-2xl space-y-2">
+                <div className="flex justify-between text-indigo-200 text-xs"><span>Subtotal Serviços</span><span>R$ {subtotalServicos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                <div className="flex justify-between text-indigo-200 text-xs"><span>Subtotal Peças</span><span>R$ {subtotalPecas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
+                <div className="flex justify-between items-center pt-3 border-t border-indigo-500">
+                  <span className="font-black uppercase tracking-widest text-sm">TOTAL GERAL</span>
+                  <span className="text-2xl font-black">R$ {totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                </div>
+              </div>
+              {/* Assinatura */}
+              <div className="border-t border-slate-200 pt-6 flex justify-between items-end">
+                <div className="text-center">
+                  <div className="w-48 border-b border-slate-400 mb-1"></div>
+                  <p className="text-xs text-slate-500">Assinatura do Técnico Responsável</p>
+                  <p className="text-xs font-bold text-slate-700">{os.mecanico_nome || '—'}</p>
+                </div>
+                <div className="text-right text-xs text-slate-400">
+                  <p>Data: {new Date().toLocaleDateString('pt-BR')}</p>
+                  <p className="mt-1">Documento gerado via AutoSync ERP</p>
+                </div>
+              </div>
+            </div>
+            <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-3xl text-center">
+              <p className="text-xs text-slate-400">Você pode reimprimir esta nota a qualquer momento abrindo a O.S. finalizada.</p>
             </div>
           </div>
         </div>

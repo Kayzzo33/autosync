@@ -90,11 +90,13 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         SELECT o.*, 
                v.placa, v.modelo, v.marca, v.id as veiculo_id,
                c.nome as cliente_nome, c.telefone as cliente_telefone,
-               m.nome as mecanico_nome
+               COALESCE(m.nome, u.nome) as mecanico_nome,
+               o.mecanico_id
         FROM ordens_servico o
         JOIN veiculos v ON v.id = o.veiculo_id
         JOIN clientes c ON c.id = v.cliente_id
         LEFT JOIN mecanicos m ON m.id = o.mecanico_id
+        LEFT JOIN users u ON u.id = o.mecanico_id
         WHERE o.id = ${id} AND o.tenant_id = ${tenant_id}
       `;
       return data[0];
@@ -343,25 +345,45 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   app.post('/:id/servicos', async (req, reply) => {
     const { tenant_id } = req.user;
     const { id } = req.params as { id: string };
+    // Aceita tanto `valor` quanto `valor_unit` para compatibilidade com o frontend
     const bodySchema = z.object({
-      descricao: z.string(),
+      descricao: z.string().min(1),
       quantidade: z.number().default(1),
-      valor_unit: z.number(),
+      valor: z.number().optional(),
+      valor_unit: z.number().optional(),
+    }).refine(d => (d.valor !== undefined || d.valor_unit !== undefined), {
+      message: 'Informe o valor do serviço'
     });
     const body = bodySchema.parse(req.body);
+    const valorFinal = body.valor_unit ?? body.valor ?? 0;
 
     const result = await withTenantRls(tenant_id, async (t) => {
       const inserted = await t`
         INSERT INTO os_servicos (tenant_id, os_id, descricao, quantidade, valor)
-        VALUES (${tenant_id}, ${id}, ${body.descricao}, ${body.quantidade}, ${body.valor_unit})
+        VALUES (${tenant_id}, ${id}, ${body.descricao}, ${body.quantidade}, ${valorFinal})
         RETURNING *
       `;
-      // Atualizar o valor total da OS
-      await t`UPDATE ordens_servico SET valor_total = valor_total + ${body.valor_unit * body.quantidade} WHERE id = ${id}`;
+      await t`UPDATE ordens_servico SET valor_total = valor_total + ${valorFinal * body.quantidade} WHERE id = ${id}`;
       return inserted[0];
     });
 
     return reply.status(201).send({ item: result });
+  });
+
+  // Trocar mecânico responsável pela OS
+  app.patch('/:id/mecanico', async (req, reply) => {
+    const { tenant_id } = req.user;
+    const { id } = req.params as { id: string };
+    const { mecanico_id } = z.object({ mecanico_id: z.string().uuid() }).parse(req.body);
+
+    await withTenantRls(tenant_id, async (t) => {
+      // Verifica que o mecânico pertence ao tenant
+      const mec = await t`SELECT id FROM mecanicos WHERE id = ${mecanico_id} AND tenant_id = ${tenant_id} AND ativo = true`;
+      if (mec.length === 0) throw new Error('Mecânico não encontrado ou inativo.');
+      await t`UPDATE ordens_servico SET mecanico_id = ${mecanico_id} WHERE id = ${id} AND tenant_id = ${tenant_id}`;
+    });
+
+    return reply.send({ message: 'Mecânico atualizado com sucesso' });
   });
 
   // Adicionar Peça
@@ -395,8 +417,9 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     const { id } = req.params as { id: string };
 
     const data = await withTenantRls(tenant_id, async (t) => {
-      const servicos = await t`SELECT descricao, quantidade, valor FROM os_servicos WHERE os_id = ${id}`;
-      const pecas = await t`SELECT descricao, quantidade, valor_unit FROM os_pecas WHERE os_id = ${id}`;
+      // Retorna o `id` para que o frontend consiga deletar os itens
+      const servicos = await t`SELECT id, descricao, quantidade, valor FROM os_servicos WHERE os_id = ${id} ORDER BY created_at ASC`;
+      const pecas = await t`SELECT id, descricao, quantidade, valor_unit FROM os_pecas WHERE os_id = ${id} ORDER BY created_at ASC`;
       return { servicos, pecas };
     });
 
