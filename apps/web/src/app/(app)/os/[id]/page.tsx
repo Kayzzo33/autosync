@@ -583,83 +583,141 @@ export default function OSDetailPage() {
               </div>
             </div>
             {/* Área de Impressão */}
-            <div ref={printRef} className="p-8 space-y-6 text-sm text-slate-800">
-              {/* Cabeçalho */}
-              <div className="text-center border-b border-slate-200 pb-6">
-                <h1 className="text-2xl font-black text-slate-900">ORDEM DE SERVIÇO</h1>
-                <p className="text-slate-500 text-xs mt-1">AutoSync — Sistema de Gestão de Oficinas</p>
-                <p className="text-xs text-slate-400 mt-1">OS #{os.id.split('-')[0].toUpperCase()} • Emitida em {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
-              </div>
-              {/* Grid de Dados */}
-              <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Cliente</p>
-                  <p className="font-bold text-slate-900">{os.cliente_nome}</p>
-                  <p className="text-slate-500">{os.cliente_telefone}</p>
-                </div>
-                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Veículo</p>
-                  <p className="font-bold text-slate-900">{os.marca} {os.modelo}</p>
-                  <span className="inline-block bg-slate-900 text-white font-mono px-2 py-0.5 rounded text-[10px] uppercase">{os.placa}</span>
-                </div>
-                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Responsável Técnico</p>
-                  <p className="font-bold text-slate-900">{os.mecanico_nome || '—'}</p>
-                </div>
-                <div className="space-y-1 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Kilometragem</p>
-                  <p className="text-slate-700">Entrada: <span className="font-bold">{os.km_entrada} km</span></p>
-                  <p className="text-slate-700">Saída: <span className="font-bold">{os.km_saida || '—'} km</span></p>
-                </div>
-              </div>
-              {/* Serviços */}
-              {servicos.length > 0 && (
+            <div ref={printRef} className="p-10 space-y-8 text-[12px] text-slate-800 bg-white">
+              {/* Cabeçalho Profissional */}
+              <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6">
                 <div>
-                  <h3 className="font-black text-slate-900 mb-2 flex items-center gap-2"><Wrench className="w-4 h-4 text-indigo-500" /> Serviços Realizados</h3>
-                  <table className="w-full border border-slate-200 rounded-xl overflow-hidden text-xs">
-                    <thead><tr className="bg-slate-100"><th className="p-2 text-left">Descrição</th><th className="p-2 text-right">Valor</th></tr></thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {servicos.map(s => (
-                        <tr key={s.id}><td className="p-2">{s.descricao}</td><td className="p-2 text-right font-bold">R$ {Number(s.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <h1 className="text-3xl font-black text-slate-900 leading-none mb-1">{os.tenant_name || 'AutoSync'}</h1>
+                  <p className="text-slate-500 font-bold uppercase tracking-tighter">Comprovante de Ordem de Serviço</p>
                 </div>
-              )}
-              {/* Peças */}
-              {pecas.length > 0 && (
-                <div>
-                  <h3 className="font-black text-slate-900 mb-2 flex items-center gap-2"><Package className="w-4 h-4 text-amber-500" /> Peças de Reposição</h3>
-                  <table className="w-full border border-slate-200 rounded-xl overflow-hidden text-xs">
-                    <thead><tr className="bg-slate-100"><th className="p-2 text-left">Peça</th><th className="p-2 text-center">Qtd</th><th className="p-2 text-right">Unit.</th><th className="p-2 text-right">Total</th></tr></thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {pecas.map(p => (
-                        <tr key={p.id}><td className="p-2">{p.descricao}</td><td className="p-2 text-center">{p.quantidade}</td><td className="p-2 text-right">R$ {Number(p.valor_unit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td><td className="p-2 text-right font-bold">R$ {(Number(p.valor_unit) * p.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              {/* Totais */}
-              <div className="bg-indigo-700 text-white p-6 rounded-2xl space-y-2">
-                <div className="flex justify-between text-indigo-200 text-xs"><span>Subtotal Serviços</span><span>R$ {subtotalServicos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
-                <div className="flex justify-between text-indigo-200 text-xs"><span>Subtotal Peças</span><span>R$ {subtotalPecas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span></div>
-                <div className="flex justify-between items-center pt-3 border-t border-indigo-500">
-                  <span className="font-black uppercase tracking-widest text-sm">TOTAL GERAL</span>
-                  <span className="text-2xl font-black">R$ {totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                <div className="text-right">
+                  <div className="bg-slate-900 text-white px-4 py-2 rounded-lg inline-block mb-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest opacity-70">Número da O.S.</p>
+                    <p className="text-xl font-black leading-none">#{os.id.split('-')[0].toUpperCase()}</p>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-bold">{new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}</p>
                 </div>
               </div>
-              {/* Assinatura */}
-              <div className="border-t border-slate-200 pt-6 flex justify-between items-end">
-                <div className="text-center">
-                  <div className="w-48 border-b border-slate-400 mb-1"></div>
-                  <p className="text-xs text-slate-500">Assinatura do Técnico Responsável</p>
-                  <p className="text-xs font-bold text-slate-700">{os.mecanico_nome || '—'}</p>
+
+              {/* Informações Alinhadas (Estilo solicitado pelo usuário) */}
+              <div className="space-y-2 py-4 border-b border-slate-100">
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-black uppercase text-slate-400 text-[10px]">Cliente:</span>
+                  <span className="font-bold text-slate-900">{os.cliente_nome}</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-black uppercase text-slate-400 text-[10px]">Contato:</span>
+                  <span className="font-bold text-slate-900">{os.cliente_telefone}</span>
                 </div>
-                <div className="text-right text-xs text-slate-400">
-                  <p>Data: {new Date().toLocaleDateString('pt-BR')}</p>
-                  <p className="mt-1">Documento gerado via AutoSync ERP</p>
+                
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="font-black uppercase text-slate-400 text-[10px]">Veículo:</span>
+                  <span className="font-bold text-slate-900 uppercase">{os.marca} {os.modelo}</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-black uppercase text-slate-400 text-[10px]">Placa:</span>
+                  <span className="font-mono font-bold text-slate-900">{os.placa}</span>
                 </div>
+
+                <div className="flex items-center gap-2 text-sm pt-1">
+                  <span className="font-black uppercase text-slate-400 text-[10px]">Responsável Técnico:</span>
+                  <span className="font-bold text-indigo-600 uppercase">{os.mecanico_nome || 'A DEFINIR'}</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-black uppercase text-slate-400 text-[10px]">KM Entrada:</span>
+                  <span className="font-bold text-slate-900">{os.km_entrada} km</span>
+                  <span className="text-slate-300">|</span>
+                  <span className="font-black uppercase text-slate-400 text-[10px]">KM Saída:</span>
+                  <span className="font-bold text-slate-900">{os.km_saida || '—'} km</span>
+                </div>
+              </div>
+
+              {/* Tabela de Serviços e Peças (Unificada e Limpa) */}
+              <div className="space-y-6">
+                {servicos.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-black text-slate-900 uppercase tracking-widest text-[10px] flex items-center gap-2">
+                      <div className="w-1 h-3 bg-indigo-500"></div> Serviços Realizados
+                    </h3>
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-slate-200">
+                          <th className="py-2 text-left font-black uppercase text-slate-400 text-[9px]">Descrição do Serviço</th>
+                          <th className="py-2 text-right font-black uppercase text-slate-400 text-[9px]">Valor Bruto</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {servicos.map(s => (
+                          <tr key={s.id}>
+                            <td className="py-3 text-slate-700 font-medium">{s.descricao}</td>
+                            <td className="py-3 text-right font-bold text-slate-900">R$ {Number(s.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {pecas.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="font-black text-slate-900 uppercase tracking-widest text-[10px] flex items-center gap-2">
+                      <div className="w-1 h-3 bg-amber-500"></div> Peças e Materiais
+                    </h3>
+                    <table className="w-full text-xs border-collapse">
+                      <thead>
+                        <tr className="border-b-2 border-slate-200">
+                          <th className="py-2 text-left font-black uppercase text-slate-400 text-[9px]">Item / Descrição</th>
+                          <th className="py-2 text-center font-black uppercase text-slate-400 text-[9px]">Qtd</th>
+                          <th className="py-2 text-right font-black uppercase text-slate-400 text-[9px]">V. Unit</th>
+                          <th className="py-2 text-right font-black uppercase text-slate-400 text-[9px]">Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100">
+                        {pecas.map(p => (
+                          <tr key={p.id}>
+                            <td className="py-3 text-slate-700 font-medium">{p.descricao}</td>
+                            <td className="py-3 text-center text-slate-500 font-bold">{p.quantidade}</td>
+                            <td className="py-3 text-right text-slate-500">R$ {Number(p.valor_unit).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                            <td className="py-3 text-right font-bold text-slate-900">R$ {(Number(p.valor_unit) * p.quantidade).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Resumo de Valores Alinhado à Direita */}
+              <div className="flex justify-end pt-4">
+                <div className="w-64 space-y-2">
+                  <div className="flex justify-between text-slate-500 font-bold uppercase text-[10px]">
+                    <span>Total em Serviços</span>
+                    <span>R$ {subtotalServicos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-500 font-bold uppercase text-[10px]">
+                    <span>Total em Peças</span>
+                    <span>R$ {subtotalPecas.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-3 border-t-2 border-slate-900 mt-2">
+                    <span className="font-black text-slate-900 uppercase tracking-widest text-xs">VALOR TOTAL</span>
+                    <span className="text-xl font-black text-slate-900">R$ {totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Área de Assinatura (Ajustada com linha) */}
+              <div className="pt-20 grid grid-cols-2 gap-20">
+                <div className="text-center space-y-2">
+                  <div className="border-b border-slate-900 w-full mx-auto"></div>
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Assinatura do Técnico</p>
+                  <p className="font-bold text-slate-900 uppercase">{os.mecanico_nome || '—'}</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <div className="border-b border-slate-900 w-full mx-auto"></div>
+                  <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Assinatura do Cliente</p>
+                  <p className="font-bold text-slate-900 uppercase">{os.cliente_nome}</p>
+                </div>
+              </div>
+
+              <div className="pt-10 text-center border-t border-slate-100">
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-[0.2em]">Documento gerado eletronicamente via AutoSync ERP</p>
               </div>
             </div>
             <div className="p-4 border-t border-slate-100 bg-slate-50 rounded-b-3xl text-center">

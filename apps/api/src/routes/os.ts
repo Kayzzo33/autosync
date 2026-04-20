@@ -91,10 +91,12 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
                v.placa, v.modelo, v.marca, v.id as veiculo_id,
                c.nome as cliente_nome, c.telefone as cliente_telefone,
                COALESCE(m.nome, u.nome) as mecanico_nome,
-               o.mecanico_id
+               o.mecanico_id,
+               ten.name as tenant_name
         FROM ordens_servico o
         JOIN veiculos v ON v.id = o.veiculo_id
         JOIN clientes c ON c.id = v.cliente_id
+        JOIN tenants ten ON ten.id = o.tenant_id
         LEFT JOIN mecanicos m ON m.id = o.mecanico_id
         LEFT JOIN users u ON u.id = o.mecanico_id
         WHERE o.id = ${id} AND o.tenant_id = ${tenant_id}
