@@ -12,7 +12,10 @@ import {
   ArrowRight,
   Clock,
   CarFront,
-  MessageSquare
+  MessageSquare,
+  FileText,
+  UserPlus,
+  Target
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -87,6 +90,31 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-black tracking-tight text-slate-900 italic">AutoSync Dashboard</h1>
         <p className="text-slate-500 mt-1 font-medium">Desempenho da oficina em tempo real.</p>
       </header>
+
+      {/* Ações Rápidas */}
+      <div className="flex flex-wrap gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl shadow-slate-900/10">
+        <button 
+          onClick={() => alert('Modal Nova O.S. (Em breve)')}
+          className="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
+        >
+          <FileText className="w-6 h-6" />
+          <span className="text-lg">+ Nova O.S.</span>
+        </button>
+        <button 
+          onClick={() => alert('Modal Novo Cliente (Em breve)')}
+          className="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
+        >
+          <UserPlus className="w-6 h-6" />
+          <span className="text-lg">+ Novo Cliente</span>
+        </button>
+        <button 
+          onClick={() => alert('Modal Novo Lead (Em breve)')}
+          className="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
+        >
+          <Target className="w-6 h-6" />
+          <span className="text-lg">+ Novo Lead</span>
+        </button>
+      </div>
 
       {/* Métricas de Alto Nível */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

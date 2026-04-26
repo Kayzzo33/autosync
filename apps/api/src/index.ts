@@ -91,6 +91,8 @@ import dashboardRoutes from './routes/dashboard';
 import mecanicosRoutes from './routes/mecanicos';
 import tenantsRoutes from './routes/tenants';
 import messagesRoutes from './routes/messages';
+import superadminRoutes from './routes/superadmin';
+import catalogoRoutes from './routes/catalogo';
 
 if (process.env.JWT_SECRET!.length < 32) {
   console.log('WARNING: JWT_SECRET curto (<32 chars). Aceitável para dev, mas RECOMENDADO aumentar.');
@@ -137,6 +139,11 @@ app.register(async (instance) => {
   instance.register(mecanicosRoutes, { prefix: '/mecanicos' });
   instance.register(tenantsRoutes,   { prefix: '/tenants' });
   instance.register(messagesRoutes,  { prefix: '/messages' });
+  instance.register(catalogoRoutes,  { prefix: '/catalogo' });
+  
+  // NOTE: rateLimitMiddleware has to be handled carefully in superadmin, 
+  // but it's okay here since it's just public/default
+  instance.register(superadminRoutes, { prefix: '/superadmin' });
 });
 
 // PROTEÇÃO POR ROTA: cada rota protegida usa onRequest: [app.verifyJwt]

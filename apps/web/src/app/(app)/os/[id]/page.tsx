@@ -46,6 +46,7 @@ export default function OSDetailPage() {
   const [servicos, setServicos] = useState<Item[]>([]);
   const [pecas, setPecas] = useState<Item[]>([]);
   const [mecanicos, setMecanicos] = useState<Mecanico[]>([]);
+  const [catalogo, setCatalogo] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const [showServicoModal, setShowServicoModal] = useState(false);
@@ -62,15 +63,17 @@ export default function OSDetailPage() {
 
   const loadData = async () => {
     try {
-      const [osRes, itemsRes, mecRes] = await Promise.all([
+      const [osRes, itemsRes, mecRes, catRes] = await Promise.all([
         api.get(`/os/${id}`),
         api.get(`/os/${id}/itens`),
-        api.get('/mecanicos')
+        api.get('/mecanicos'),
+        api.get('/catalogo')
       ]);
       setOs(osRes.data.os);
       setServicos(itemsRes.data.servicos);
       setPecas(itemsRes.data.pecas);
       setMecanicos(mecRes.data.mecanicos || []);
+      setCatalogo(catRes.data || []);
       if (osRes.data.os.km_entrada) setKmSaida(String(osRes.data.os.km_entrada));
     } catch (err) {
       toast.error('Erro ao carregar detalhes da OS');
@@ -475,17 +478,34 @@ export default function OSDetailPage() {
               <h3 className="text-xl font-black text-slate-900">Adicionar Serviço</h3>
               <button onClick={() => setShowServicoModal(false)}><ArrowLeft className="w-5 h-5 text-slate-400" /></button>
             </div>
-            <form onSubmit={handleAddServico} className="p-6 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Descrição do Serviço</label>
-                <input required className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300" value={newServico.descricao} onChange={e => setNewServico(p => ({ ...p, descricao: e.target.value }))} placeholder="Ex: Troca de óleo" />
+            <div className="p-6">
+              <div className="mb-4">
+                 <label className="text-xs font-bold text-slate-500 uppercase">Buscar do Catálogo</label>
+                 <select 
+                    className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300"
+                    onChange={e => {
+                       const item = catalogo.find(c => c.id === e.target.value);
+                       if (item) setNewServico({ descricao: item.nome, valor: item.preco_padrao.toString() });
+                    }}
+                 >
+                    <option value="">-- Inserção Manual --</option>
+                    {catalogo.filter(c => c.tipo === 'servico' && c.ativo).map(c => (
+                       <option key={c.id} value={c.id}>{c.nome} (R$ {Number(c.preco_padrao).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</option>
+                    ))}
+                 </select>
               </div>
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Valor (R$)</label>
-                <input required type="text" inputMode="decimal" placeholder="0,00" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300" value={newServico.valor} onChange={e => setNewServico(p => ({ ...p, valor: e.target.value }))} />
-              </div>
-              <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100">Adicionar à O.S.</button>
-            </form>
+              <form onSubmit={handleAddServico} className="space-y-4 pt-4 border-t border-slate-100">
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Descrição do Serviço</label>
+                  <input required className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300" value={newServico.descricao} onChange={e => setNewServico(p => ({ ...p, descricao: e.target.value }))} placeholder="Ex: Troca de óleo" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase">Valor (R$)</label>
+                  <input required type="text" inputMode="decimal" placeholder="0,00" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-300" value={newServico.valor} onChange={e => setNewServico(p => ({ ...p, valor: e.target.value }))} />
+                </div>
+                <button type="submit" className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100">Adicionar à O.S.</button>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -497,23 +517,40 @@ export default function OSDetailPage() {
               <h3 className="text-xl font-black text-slate-900">Adicionar Peça</h3>
               <button onClick={() => setShowPecaModal(false)}><ArrowLeft className="w-5 h-5 text-slate-400" /></button>
             </div>
-            <form onSubmit={handleAddPeca} className="p-6 space-y-4">
-              <div>
-                <label className="text-xs font-bold text-slate-500 uppercase">Descrição da Peça</label>
-                <input required className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" value={newPeca.descricao} onChange={e => setNewPeca(p => ({ ...p, descricao: e.target.value }))} />
+            <div className="p-6">
+              <div className="mb-4">
+                 <label className="text-xs font-bold text-slate-500 uppercase">Buscar do Catálogo</label>
+                 <select 
+                    className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300"
+                    onChange={e => {
+                       const item = catalogo.find(c => c.id === e.target.value);
+                       if (item) setNewPeca({ descricao: item.nome, quantidade: '1', valor_unit: item.preco_padrao.toString() });
+                    }}
+                 >
+                    <option value="">-- Inserção Manual --</option>
+                    {catalogo.filter(c => c.tipo === 'peca' && c.ativo).map(c => (
+                       <option key={c.id} value={c.id}>{c.nome} (R$ {Number(c.preco_padrao).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})</option>
+                    ))}
+                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleAddPeca} className="space-y-4 pt-4 border-t border-slate-100">
                 <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase">Quantidade</label>
-                  <input required type="text" inputMode="numeric" placeholder="1" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300" value={newPeca.quantidade} onChange={e => setNewPeca(p => ({ ...p, quantidade: e.target.value }))} />
+                  <label className="text-xs font-bold text-slate-500 uppercase">Descrição da Peça</label>
+                  <input required className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl" value={newPeca.descricao} onChange={e => setNewPeca(p => ({ ...p, descricao: e.target.value }))} />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-500 uppercase">Valor Unit. (R$)</label>
-                  <input required type="text" inputMode="decimal" placeholder="0,00" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300" value={newPeca.valor_unit} onChange={e => setNewPeca(p => ({ ...p, valor_unit: e.target.value }))} />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Quantidade</label>
+                    <input required type="text" inputMode="numeric" placeholder="1" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300" value={newPeca.quantidade} onChange={e => setNewPeca(p => ({ ...p, quantidade: e.target.value }))} />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-500 uppercase">Valor Unit. (R$)</label>
+                    <input required type="text" inputMode="decimal" placeholder="0,00" className="w-full mt-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-amber-300" value={newPeca.valor_unit} onChange={e => setNewPeca(p => ({ ...p, valor_unit: e.target.value }))} />
+                  </div>
                 </div>
-              </div>
-              <button type="submit" className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-100">Adicionar à O.S.</button>
-            </form>
+                <button type="submit" className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-100">Adicionar à O.S.</button>
+              </form>
+            </div>
           </div>
         </div>
       )}
