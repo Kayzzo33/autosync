@@ -57,7 +57,7 @@ const superadminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           await logAudit(ip, 'LOGIN_SUCCESS');
 
           const superToken = app.jwt.sign(
-             { role: 'superadmin' },
+             { role: 'superadmin', sub: 'superadmin', tenant_id: 'superadmin' },
              { expiresIn: '8h' }
           );
 
@@ -125,7 +125,7 @@ const superadminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
      await logAudit(ip, 'GENERATE_INVITE', null, { token });
 
-     const url = \`\${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/cadastro?token=\${token}\`;
+     const url = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '')}/cadastro?token=${token}`;
      return reply.send({ url, token });
   });
 

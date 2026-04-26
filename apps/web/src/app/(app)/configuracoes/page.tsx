@@ -535,6 +535,7 @@ export default function ConfiguracoesPage() {
             </form>
           </div>
         </div>
+      )}
       {/* MODAL: NOVO CATALOGO ITEM */}
       {showCatalogoModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">

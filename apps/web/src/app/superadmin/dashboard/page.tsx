@@ -130,14 +130,14 @@ export default function SuperadminDashboard() {
                   <td className="px-6 py-4">{tenant.total_usuarios}</td>
                   <td className="px-6 py-4">{tenant.total_os}</td>
                   <td className="px-6 py-4">
-                    <span className={\`px-2.5 py-1 rounded-full text-xs font-medium \${tenant.ativo ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}\`}>
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${tenant.ativo ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
                       {tenant.ativo ? 'Ativo' : 'Suspenso'}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <button 
                       onClick={() => handleToggleStatus(tenant.id)}
-                      className={\`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors \${tenant.ativo ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}\`}
+                      className={`text-xs font-medium px-3 py-1.5 rounded-lg transition-colors ${tenant.ativo ? 'bg-red-500/10 text-red-400 hover:bg-red-500/20' : 'bg-green-500/10 text-green-400 hover:bg-green-500/20'}`}
                     >
                       {tenant.ativo ? 'Suspender' : 'Reativar'}
                     </button>
