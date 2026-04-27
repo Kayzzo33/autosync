@@ -36,7 +36,11 @@ const superadminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
   };
 
   const logAudit = async (ip: string, acao: string, tenant_afetado: string | null = null, detalhes: any = {}) => {
-     await sql`INSERT INTO superadmin_logs (ip, acao, tenant_afetado, detalhes) VALUES (${ip}, ${acao}, ${tenant_afetado}, ${detalhes})`;
+    try {
+      await sql`INSERT INTO superadmin_logs (ip, acao, tenant_afetado, detalhes) VALUES (${ip}, ${acao}, ${tenant_afetado}, ${detalhes})`;
+    } catch (_) {
+      // silently ignore — table may not exist yet, don't break the route
+    }
   };
 
   app.post('/login', async (request, reply) => {

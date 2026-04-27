@@ -170,7 +170,7 @@ export default function DashboardPage() {
         {/* Atrasos */}
         <div className={`p-6 rounded-[2rem] border transition-all duration-300 ${
           (stats?.os_em_atraso || 0) > 0 
-            ? 'bg-rose-50 border-rose-200 shadow-rose-100 shadow-lg' 
+            ? 'bg-rose-50 border-rose-200' 
             : 'bg-white border-slate-200 shadow-sm'
         }`}>
           <div className="flex items-center justify-between mb-4">

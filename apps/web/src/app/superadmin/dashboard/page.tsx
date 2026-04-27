@@ -16,15 +16,18 @@ export default function SuperadminDashboard() {
 
   const loadData = async () => {
     setLoading(true);
+    setError('');
     const tenantsRes = await getTenants();
     const logsRes = await getLogs();
 
-    if (tenantsRes?.error || logsRes?.error) {
-      router.push('/superadmin/login');
+    if (tenantsRes?.error) {
+      setError(`Erro ao carregar tenants: ${tenantsRes.error}`);
+      setLoading(false);
       return;
     }
 
     setTenants(tenantsRes.data || []);
+    // Logs are optional — don't fail if they don't work yet
     setLogs(logsRes.data || []);
     setLoading(false);
   };
@@ -58,7 +61,21 @@ export default function SuperadminDashboard() {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
+    return <div className="min-h-screen flex items-center justify-center text-white">Carregando...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
+        <div className="bg-red-900/30 border border-red-500/30 rounded-xl p-6 max-w-lg w-full text-center">
+          <p className="text-red-400 font-bold mb-2">Erro de autenticação</p>
+          <p className="text-red-300 text-sm font-mono">{error}</p>
+        </div>
+        <button onClick={() => window.location.href = '/superadmin/login'} className="text-zinc-400 hover:text-white text-sm">
+          Voltar para o login
+        </button>
+      </div>
+    );
   }
 
   return (

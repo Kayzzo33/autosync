@@ -343,7 +343,7 @@ export default function FinanceiroPage() {
                 </button>
                 <button 
                   type="submit"
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-100"
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl"
                 >
                   Lançar Agora
                 </button>
