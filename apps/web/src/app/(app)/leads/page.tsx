@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { api } from '../../../services/api';
 import { UserPlus, Save, Loader2, Search, Target, CheckCircle2, TrendingUp, Filter } from 'lucide-react';
 import { toast } from 'sonner';
@@ -41,7 +41,6 @@ export default function LeadsPage() {
     }
   };
 
-  const searchParams = useSearchParams();
   const [showNewLeadModal, setShowNewLeadModal] = useState(false);
 
   useEffect(() => {
@@ -49,10 +48,13 @@ export default function LeadsPage() {
   }, []);
 
   useEffect(() => {
-    if (searchParams.get('acao') === 'novo') {
-      setShowNewLeadModal(true);
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('acao') === 'novo') {
+        setShowNewLeadModal(true);
+      }
     }
-  }, [searchParams]);
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

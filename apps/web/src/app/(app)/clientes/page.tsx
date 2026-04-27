@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { Users, CarFront, Plus, Loader2, Search, X, ChevronDown, ChevronUp, Save, Clock, DollarSign, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
@@ -31,7 +31,6 @@ export default function ClientesPage() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const searchParams = useSearchParams();
   const [expandedClientId, setExpandedClientId] = useState<string | null>(null);
 
   // Modal State
@@ -101,17 +100,18 @@ export default function ClientesPage() {
     }
   };
 
-  };
-
   useEffect(() => {
     fetchClientes();
   }, [search]);
 
   useEffect(() => {
-    if (searchParams.get('acao') === 'novo') {
-      setShowNewClientModal(true);
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('acao') === 'novo') {
+        setShowNewClientModal(true);
+      }
     }
-  }, [searchParams]);
+  }, []);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">

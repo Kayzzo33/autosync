@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import React from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { api } from '@/services/api';
 import { 
   Wrench, Plus, Loader2, Search, X, 
@@ -40,14 +40,16 @@ export default function OSPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  const searchParams = useSearchParams();
   const [showNewOS, setShowNewOS] = useState(false);
 
   useEffect(() => {
-    if (searchParams.get('acao') === 'novo') {
-      setShowNewOS(true);
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('acao') === 'novo') {
+        setShowNewOS(true);
+      }
     }
-  }, [searchParams]);
+  }, []);
 
   const fetchOS = async () => {
     setIsLoading(true);
