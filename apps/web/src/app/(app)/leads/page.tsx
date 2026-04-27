@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '../../../services/api';
 import { UserPlus, Save, Loader2, Search, Target, CheckCircle2, TrendingUp, Filter } from 'lucide-react';
 import { toast } from 'sonner';
+import NewLeadModal from '@/components/modals/NewLeadModal';
 
 type Lead = {
   id: string;
@@ -39,9 +41,18 @@ export default function LeadsPage() {
     }
   };
 
+  const searchParams = useSearchParams();
+  const [showNewLeadModal, setShowNewLeadModal] = useState(false);
+
   useEffect(() => {
     fetchLeads();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('acao') === 'novo') {
+      setShowNewLeadModal(true);
+    }
+  }, [searchParams]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,9 +88,10 @@ export default function LeadsPage() {
 
   const getStatusStyle = (status: string) => {
     switch(status) {
+        case 'novo': return 'bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-500/20';
         case 'convertido': return 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/20';
         case 'perdido': return 'bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-500/20';
-        default: return 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-500/20';
+        default: return 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-400 border-slate-200 dark:border-slate-700';
     }
   };
 
@@ -206,10 +218,9 @@ export default function LeadsPage() {
                                     setLeadToConvert(lead);
                                     setShowConvertModal(true);
                                 }}
-                                className="bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-2xl shadow-lg shadow-emerald-100 dark:shadow-none transition-all hover:scale-110 active:scale-90"
-                                title="Converter em Cliente"
+                                className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-lg shadow-emerald-100 dark:shadow-none transition-all active:scale-95"
                             >
-                                <CheckCircle2 className="w-5 h-5" />
+                                <span className="text-sm font-bold">Converter em Cliente</span>
                             </button>
                         ) : (
                             <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center">
@@ -274,6 +285,12 @@ export default function LeadsPage() {
           </div>
         </div>
       )}
+
+      <NewLeadModal 
+        isOpen={showNewLeadModal} 
+        onClose={() => setShowNewLeadModal(false)} 
+        onSuccess={fetchLeads} 
+      />
     </div>
   );
 }

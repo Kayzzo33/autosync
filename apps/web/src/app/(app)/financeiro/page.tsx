@@ -117,36 +117,36 @@ export default function FinanceiroPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 space-y-4">
           <div className="flex justify-between items-start">
-            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
-              <TrendingUp className="w-5 h-5" />
+            <div className="w-12 h-12 bg-indigo-100 dark:bg-indigo-500/20 rounded-2xl flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+              <TrendingUp className="w-6 h-6" />
             </div>
-            <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2 py-0.5 rounded-full uppercase">Este Mês</span>
+            <span className="text-[10px] bg-emerald-100 text-emerald-700 font-black px-2 py-1 rounded-full uppercase tracking-widest">Este Mês</span>
           </div>
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Faturamento Realizado</p>
-            <h3 className="text-2xl font-black text-slate-900">R$ {resumo.faturamento_mes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
-            <Clock className="w-5 h-5" />
-          </div>
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total a Receber</p>
-            <h3 className="text-2xl font-black text-slate-900">R$ {resumo.total_receber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          <div className="pt-2">
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Faturamento Realizado</p>
+            <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">R$ {resumo.faturamento_mes.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
-            <CheckCircle className="w-5 h-5" />
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 space-y-4">
+          <div className="w-12 h-12 bg-amber-100 dark:bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <Clock className="w-6 h-6" />
           </div>
-          <div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Recebido (Geral)</p>
-            <h3 className="text-2xl font-black text-slate-900">R$ {resumo.total_recebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          <div className="pt-2">
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Total a Receber</p>
+            <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">R$ {resumo.total_receber.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 space-y-4">
+          <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <CheckCircle className="w-6 h-6" />
+          </div>
+          <div className="pt-2">
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Total Recebido (Geral)</p>
+            <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">R$ {resumo.total_recebido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
           </div>
         </div>
       </div>
@@ -187,16 +187,16 @@ export default function FinanceiroPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200">
+      <div className="flex gap-4 p-2 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit mb-4">
         <button 
           onClick={() => setActiveTab('fluxo')}
-          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'fluxo' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+          className={`px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'fluxo' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           Fluxo de Caixa
         </button>
         <button 
           onClick={() => setActiveTab('receber')}
-          className={`px-6 py-4 text-sm font-bold transition-all border-b-2 ${activeTab === 'receber' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+          className={`px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === 'receber' ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           Contas a Receber ({contasReceber.length})
         </button>

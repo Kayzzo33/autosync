@@ -21,6 +21,14 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           AND EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM CURRENT_DATE)
       `;
 
+      // Total Recebido Geral (Todas as entradas)
+      const totalRecebidoResult = await t`
+        SELECT SUM(valor) as total 
+        FROM movimentacoes_financeiras 
+        WHERE tenant_id = ${tenant_id} 
+          AND tipo = 'entrada'
+      `;
+
       // Totais Contas_Receber
       const contasResult = await t`
         SELECT 
@@ -32,7 +40,7 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
       return {
         faturamento_mes: Number(fatResult[0].total || 0),
-        total_recebido: Number(contasResult[0].total_recebido || 0),
+        total_recebido: Number(totalRecebidoResult[0].total || contasResult[0].total_recebido || 0),
         total_receber: Number(contasResult[0].total_receber || 0),
       };
     });

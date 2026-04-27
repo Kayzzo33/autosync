@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/services/api';
 import { 
   Wrench, Plus, Loader2, Search, X, 
@@ -40,8 +40,14 @@ export default function OSPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   
-  // New OS States
+  const searchParams = useSearchParams();
   const [showNewOS, setShowNewOS] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get('acao') === 'novo') {
+      setShowNewOS(true);
+    }
+  }, [searchParams]);
 
   const fetchOS = async () => {
     setIsLoading(true);
@@ -61,10 +67,10 @@ export default function OSPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'aberta': return 'bg-slate-100 text-slate-700';
-      case 'em_andamento': return 'bg-indigo-100 text-indigo-700';
-      case 'pronta': return 'bg-emerald-100 text-emerald-700';
-      case 'fechada': return 'bg-blue-100 text-blue-700';
+      case 'aberta': return 'bg-[#1e3a5f] text-white';
+      case 'em_andamento': return 'bg-[#7c3a00] text-white';
+      case 'pronta': return 'bg-[#14532d] text-white';
+      case 'fechada': return 'bg-[#374151] text-white';
       case 'cancelada': return 'bg-rose-100 text-rose-700';
       default: return 'bg-slate-100 text-slate-600';
     }
@@ -124,11 +130,10 @@ export default function OSPage() {
             </div>
 
             <div className="space-y-1 mb-6">
-              <h3 className="text-xl font-black text-slate-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{os.modelo}</h3>
-              <div className="flex items-center gap-3">
-                <span className="bg-slate-900 text-white font-mono font-bold px-2 py-0.5 rounded text-[10px] shadow-sm uppercase">{os.placa}</span>
-                <span className="text-xs text-slate-400 font-bold uppercase">{os.marca}</span>
+              <div className="flex items-center gap-3 mb-2">
+                <span className="bg-slate-900 text-white font-mono font-black px-3 py-1 rounded-md text-lg shadow-sm uppercase">{os.placa}</span>
               </div>
+              <h3 className="text-sm font-bold text-slate-500 uppercase tracking-tight">{os.marca} {os.modelo}</h3>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-slate-50">
@@ -140,7 +145,7 @@ export default function OSPage() {
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Total</p>
-                <p className="text-lg font-black text-slate-900 tracking-tighter">
+                <p className="text-2xl font-black text-slate-900 tracking-tighter">
                   R$ {(Number(os.total_geral) || Number(os.valor_total) || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </p>
               </div>

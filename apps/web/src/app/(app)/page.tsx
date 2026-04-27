@@ -18,9 +18,7 @@ import {
   Target
 } from 'lucide-react';
 import { toast } from 'sonner';
-import NewOSModal from '@/components/modals/NewOSModal';
-import NewClientModal from '@/components/modals/NewClientModal';
-import NewLeadModal from '@/components/modals/NewLeadModal';
+import { useRouter } from 'next/navigation';
 
 interface DashboardStats {
   faturamento_mes: number;
@@ -52,9 +50,7 @@ export default function DashboardPage() {
   const [alerts, setAlerts] = useState<CRMAlert[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [showNewOS, setShowNewOS] = useState(false);
-  const [showNewClient, setShowNewClient] = useState(false);
-  const [showNewLead, setShowNewLead] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     fetchDashboardData();
@@ -101,25 +97,25 @@ export default function DashboardPage() {
       {/* Ações Rápidas */}
       <div className="flex flex-wrap gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl shadow-slate-900/10">
         <button 
-          onClick={() => setShowNewOS(true)}
-          className="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
+          onClick={() => router.push('/os?acao=novo')}
+          className="flex-1 min-w-[200px] h-[60px] flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
         >
           <FileText className="w-6 h-6" />
-          <span className="text-lg">+ Nova O.S.</span>
+          <span className="text-xl font-bold">+ Nova O.S.</span>
         </button>
         <button 
-          onClick={() => setShowNewClient(true)}
-          className="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
+          onClick={() => router.push('/clientes?acao=novo')}
+          className="flex-1 min-w-[200px] h-[60px] flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
         >
           <UserPlus className="w-6 h-6" />
-          <span className="text-lg">+ Novo Cliente</span>
+          <span className="text-xl font-bold">+ Novo Cliente</span>
         </button>
         <button 
-          onClick={() => setShowNewLead(true)}
-          className="flex-1 min-w-[200px] flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
+          onClick={() => router.push('/leads?acao=novo')}
+          className="flex-1 min-w-[200px] h-[60px] flex items-center justify-center gap-3 bg-white/10 hover:bg-white/20 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
         >
           <Target className="w-6 h-6" />
-          <span className="text-lg">+ Novo Lead</span>
+          <span className="text-xl font-bold">+ Novo Lead</span>
         </button>
       </div>
 
@@ -317,21 +313,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <NewOSModal 
-        isOpen={showNewOS} 
-        onClose={() => setShowNewOS(false)} 
-        onSuccess={fetchDashboardData} 
-      />
-      <NewClientModal 
-        isOpen={showNewClient} 
-        onClose={() => setShowNewClient(false)} 
-        onSuccess={fetchDashboardData} 
-      />
-      <NewLeadModal 
-        isOpen={showNewLead} 
-        onClose={() => setShowNewLead(false)} 
-        onSuccess={fetchDashboardData} 
-      />
     </div>
   );
 }
