@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getTenants, toggleTenantStatus, generateInvite, superadminLogout, getLogs } from '../actions';
+import { superadminLogout } from '../actions';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export default function SuperadminDashboard() {
-  const router = useRouter();
   const [tenants, setTenants] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,19 +15,27 @@ export default function SuperadminDashboard() {
   const loadData = async () => {
     setLoading(true);
     setError('');
-    const tenantsRes = await getTenants();
-    const logsRes = await getLogs();
 
-    if (tenantsRes?.error) {
-      setError(`Erro ao carregar tenants: ${tenantsRes.error}`);
+    try {
+      const tenantsRes = await fetch('/api/superadmin/tenants', { cache: 'no-store' });
+      const tenantsData = await tenantsRes.json();
+
+      if (!tenantsRes.ok) {
+        setError(`${tenantsData.error || 'Erro desconhecido'}`);
+        setLoading(false);
+        return;
+      }
+
+      const logsRes = await fetch('/api/superadmin/logs', { cache: 'no-store' });
+      const logsData = await logsRes.json();
+
+      setTenants(Array.isArray(tenantsData) ? tenantsData : []);
+      setLogs(Array.isArray(logsData) ? logsData : []);
+    } catch (err: any) {
+      setError(`Erro de comunicação: ${err.message}`);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setTenants(tenantsRes.data || []);
-    // Logs are optional — don't fail if they don't work yet
-    setLogs(logsRes.data || []);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -37,27 +43,28 @@ export default function SuperadminDashboard() {
   }, []);
 
   const handleGenerateInvite = async () => {
-    const res = await generateInvite();
-    if (res?.data?.url) {
-      setInviteUrl(res.data.url);
-    } else {
-      alert('Erro ao gerar convite');
-    }
+    const res = await fetch('/api/superadmin/tenants'); // placeholder — será /api/superadmin/invite
+    alert('Em breve: geração de convite via Route Handler');
   };
 
   const handleToggleStatus = async (id: string) => {
     if (!confirm('Tem certeza que deseja alterar o status desta oficina?')) return;
-    const res = await toggleTenantStatus(id);
-    if (res?.success) {
-      loadData();
-    } else {
+    try {
+      const res = await fetch(`/api/superadmin/tenants`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+      if (res.ok) loadData();
+      else alert('Erro ao alterar status');
+    } catch {
       alert('Erro ao alterar status');
     }
   };
 
   const handleLogout = async () => {
     await superadminLogout();
-    router.push('/superadmin/login');
+    window.location.href = '/superadmin/login';
   };
 
   if (loading) {
@@ -66,12 +73,12 @@ export default function SuperadminDashboard() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-8 bg-zinc-950">
         <div className="bg-red-900/30 border border-red-500/30 rounded-xl p-6 max-w-lg w-full text-center">
           <p className="text-red-400 font-bold mb-2">Erro de autenticação</p>
-          <p className="text-red-300 text-sm font-mono">{error}</p>
+          <p className="text-red-300 text-sm font-mono break-all">{error}</p>
         </div>
-        <button onClick={() => window.location.href = '/superadmin/login'} className="text-zinc-400 hover:text-white text-sm">
+        <button onClick={() => window.location.href = '/superadmin/login'} className="text-zinc-400 hover:text-white text-sm underline">
           Voltar para o login
         </button>
       </div>
@@ -198,6 +205,13 @@ export default function SuperadminDashboard() {
                   </td>
                 </tr>
               ))}
+              {logs.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-6 text-center text-zinc-600 italic">
+                    Nenhum log de auditoria disponível ainda.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
