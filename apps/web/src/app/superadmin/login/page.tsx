@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { superadminLogin } from '../actions';
 
 export default function SuperadminLogin() {
   const [email, setEmail] = useState('');
@@ -14,14 +13,26 @@ export default function SuperadminLogin() {
     setLoading(true);
     setError('');
 
-    const res = await superadminLogin(email, password);
-    
-    if (res?.error) {
-      setError(res.error);
-      setLoading(false);
-    } else {
-      // Full page reload ensures the cookie is sent on the next request
+    try {
+      const res = await fetch('/api/superadmin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Email ou senha inválidos');
+        setLoading(false);
+        return;
+      }
+
+      // Full navigation to flush cookie before dashboard loads
       window.location.href = '/superadmin/dashboard';
+    } catch (err) {
+      setError('Erro de comunicação com o servidor');
+      setLoading(false);
     }
   };
 

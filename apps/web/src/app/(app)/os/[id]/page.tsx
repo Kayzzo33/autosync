@@ -417,7 +417,7 @@ export default function OSDetailPage() {
 
         {/* Sidebar: Totals & KM */}
         <div className="space-y-8">
-          <div className="bg-indigo-700 p-8 rounded-3xl shadow-2xl shadow-indigo-100 text-white space-y-8">
+          <div className="bg-indigo-700 p-8 rounded-3xl text-white space-y-8">
             <h2 className="text-xl font-black">Resumo Financeiro</h2>
             
             <div className="space-y-4">

@@ -105,7 +105,7 @@ export default function OSPage() {
           </div>
           <button 
             onClick={() => setShowNewOS(true)}
-            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-xl shadow-indigo-100 transition-all active:scale-95"
+            className="flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95"
           >
             <Plus className="w-5 h-5" /> Abrir Nova O.S.
           </button>
@@ -124,7 +124,7 @@ export default function OSPage() {
           <div 
             key={os.id} 
             onClick={() => router.push(`/os/${os.id}`)}
-            className="group bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-xl hover:border-indigo-200 transition-all cursor-pointer relative overflow-hidden"
+            className="group bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-md hover:border-indigo-200 transition-all cursor-pointer relative overflow-hidden"
           >
             <div className="flex justify-between items-start mb-4">
               <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md ${getStatusColor(os.status)}`}>
@@ -161,8 +161,7 @@ export default function OSPage() {
               </div>
             </div>
 
-            {/* Deco background */}
-            <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50 rounded-full blur-3xl -z-10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+            {/* Deco background - removed */}
           </div>
         ))}
 

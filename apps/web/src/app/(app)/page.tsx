@@ -95,10 +95,10 @@ export default function DashboardPage() {
       </header>
 
       {/* Ações Rápidas */}
-      <div className="flex flex-wrap gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800 shadow-xl shadow-slate-900/10">
+      <div className="flex flex-wrap gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800">
         <button 
           onClick={() => router.push('/os?acao=novo')}
-          className="flex-1 min-w-[200px] h-[60px] flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-500/20 hover:scale-[1.02]"
+          className="flex-1 min-w-[200px] h-[60px] flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"
         >
           <FileText className="w-6 h-6" />
           <span className="text-xl font-bold">+ Nova O.S.</span>
@@ -122,7 +122,7 @@ export default function DashboardPage() {
       {/* Métricas de Alto Nível */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Faturamento */}
-        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-xl hover:shadow-emerald-500/10 transition-all duration-300">
+        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Faturamento Mês</span>
             <div className="p-3 bg-emerald-500 text-white rounded-2xl group-hover:scale-110 transition-transform">
@@ -140,7 +140,7 @@ export default function DashboardPage() {
         </div>
 
         {/* O.S. Ativas */}
-        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300">
+        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">O.S. Ativas</span>
             <div className="p-3 bg-blue-500 text-white rounded-2xl group-hover:scale-110 transition-transform">
@@ -154,7 +154,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Clientes */}
-        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
+        <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm group hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Base de Clientes</span>
             <div className="p-3 bg-purple-500 text-white rounded-2xl group-hover:scale-110 transition-transform">
