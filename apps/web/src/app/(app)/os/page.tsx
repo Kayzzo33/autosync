@@ -26,6 +26,7 @@ type OS = {
   placa: string;
   modelo: string;
   marca: string;
+  cliente_nome?: string;
   mecanico_nome?: string;
   total_geral?: number;
 };
@@ -80,7 +81,8 @@ export default function OSPage() {
 
   const filteredOrdens = ordens.filter(o => 
     o.placa.toLowerCase().includes(search.toLowerCase()) || 
-    o.modelo.toLowerCase().includes(search.toLowerCase())
+    o.modelo.toLowerCase().includes(search.toLowerCase()) ||
+    (o.cliente_nome || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
@@ -136,6 +138,12 @@ export default function OSPage() {
                 <span className="bg-slate-900 text-white font-mono font-black px-3 py-1 rounded-md text-lg shadow-sm uppercase">{os.placa}</span>
               </div>
               <h3 className="text-sm font-bold text-slate-500 uppercase tracking-tight">{os.marca} {os.modelo}</h3>
+              {os.cliente_nome && (
+                <div className="flex items-center gap-1.5 mt-2">
+                  <User className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="text-sm font-bold text-slate-700">{os.cliente_nome}</span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-slate-50">

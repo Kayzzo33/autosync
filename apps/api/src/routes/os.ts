@@ -65,11 +65,13 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       return t`
         SELECT o.*, 
                v.placa, v.modelo, v.marca,
+               c.nome as cliente_nome,
                u.nome as mecanico_nome,
                (SELECT COALESCE(SUM(valor * quantidade), 0) FROM os_servicos WHERE os_id = o.id) + 
                (SELECT COALESCE(SUM(valor_unit * quantidade), 0) FROM os_pecas WHERE os_id = o.id) as total_geral
         FROM ordens_servico o
         JOIN veiculos v ON v.id = o.veiculo_id
+        JOIN clientes c ON c.id = v.cliente_id
         LEFT JOIN users u ON u.id = o.mecanico_id
         WHERE ${filter}
         ORDER BY o.created_at DESC

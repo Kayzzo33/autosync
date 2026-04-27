@@ -91,7 +91,7 @@ export default function FinanceiroPage() {
     try {
       await api.patch(`/financeiro/contas-receber/${id}/pagar`);
       toast.success('Baixa realizada com sucesso!');
-      loadData();
+      await loadData();
     } catch (err) {
       toast.error('Erro ao processar pagamento');
     }
@@ -152,7 +152,7 @@ export default function FinanceiroPage() {
       </div>
       
       {/* Chart Section */}
-      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      <div className="bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[2rem] border border-slate-200 dark:border-slate-700">
         <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Resumo Visual (Últimas Movimentações)</h3>
         <div className="h-64 w-full">
           {chartData.length > 0 ? (
@@ -203,7 +203,7 @@ export default function FinanceiroPage() {
       </div>
 
       {/* Content */}
-      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden animate-in slide-in-from-bottom-2 duration-300">
+      <div className="bg-white dark:bg-[#0a0a0a] border border-slate-200 dark:border-white/5 rounded-2xl overflow-hidden animate-in slide-in-from-bottom-2 duration-300">
         {activeTab === 'fluxo' && (
           <table className="w-full text-left">
             <thead className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 tracking-widest">
