@@ -109,7 +109,7 @@ const superadminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
      try {
        const tenants = await sql`
           SELECT t.id, t.nome, t.created_at, t.ativo,
-                 (SELECT u.email FROM users u WHERE u.tenant_id = t.id AND u.role = 'admin' LIMIT 1) as email_admin,
+                 (SELECT u.email FROM users u WHERE u.tenant_id = t.id AND u.perfil = 'admin' LIMIT 1) as email_admin,
                  (SELECT COUNT(*) FROM users u2 WHERE u2.tenant_id = t.id) as total_usuarios,
                  (SELECT COUNT(*) FROM ordens_servico os WHERE os.tenant_id = t.id) as total_os
           FROM tenants t
