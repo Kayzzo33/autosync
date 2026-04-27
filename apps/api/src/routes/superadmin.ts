@@ -106,14 +106,20 @@ const superadminRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
      const ip = getIp(request);
      await logAudit(ip, 'LIST_TENANTS');
      
-     const tenants = await sql`
-        SELECT t.id, t.nome, t.email as email_admin, t.created_at, t.ativo,
-               (SELECT COUNT(*) FROM users WHERE tenant_id = t.id) as total_usuarios,
-               (SELECT COUNT(*) FROM ordens_servico WHERE tenant_id = t.id) as total_os
-        FROM tenants t
-        ORDER BY t.created_at DESC
-     `;
-     return reply.send(tenants);
+     try {
+       const tenants = await sql`
+          SELECT t.id, t.nome, t.created_at, t.ativo,
+                 (SELECT u.email FROM users u WHERE u.tenant_id = t.id AND u.role = 'admin' LIMIT 1) as email_admin,
+                 (SELECT COUNT(*) FROM users u2 WHERE u2.tenant_id = t.id) as total_usuarios,
+                 (SELECT COUNT(*) FROM ordens_servico os WHERE os.tenant_id = t.id) as total_os
+          FROM tenants t
+          ORDER BY t.created_at DESC
+       `;
+       return reply.send(tenants);
+     } catch (err: any) {
+       console.error('[GET /superadmin/tenants] SQL error:', err?.message || err);
+       return reply.status(500).send({ error: `SQL falhou: ${err?.message || 'Erro desconhecido'}` });
+     }
   });
 
   app.post('/convites', { preHandler: verifySuperadmin }, async (request, reply) => {
