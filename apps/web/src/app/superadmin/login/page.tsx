@@ -1,11 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { superadminLogin } from '../actions';
 
 export default function SuperadminLogin() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -22,7 +20,8 @@ export default function SuperadminLogin() {
       setError(res.error);
       setLoading(false);
     } else {
-      router.push('/superadmin/dashboard');
+      // Full page reload ensures the cookie is sent on the next request
+      window.location.href = '/superadmin/dashboard';
     }
   };
 
