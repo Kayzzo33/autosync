@@ -34,7 +34,8 @@ import {
   Zap,
   ShieldCheck,
   Cpu,
-  Monitor
+  Monitor,
+  DollarSign
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -173,7 +174,7 @@ export default function SuperadminDashboard() {
           
           <button 
             onClick={handleCreateInvite}
-            className="group flex items-center gap-4 bg-white text-black px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest transition-all hover:bg-emerald-500 hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.3)] active:scale-95 shadow-2xl"
+            className="group flex items-center gap-4 bg-emerald-500 text-black px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest transition-all hover:bg-emerald-400 hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.3)] active:scale-95 shadow-2xl"
           >
             <Plus className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
             Provisionar Nova Instância
@@ -181,12 +182,13 @@ export default function SuperadminDashboard() {
         </div>
 
         {/* Global Network Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
            {[
              { label: 'Network Instances', val: activeTenants, sub: `/ ${tenants.length}`, icon: Building2, color: 'emerald' },
              { label: 'Global Users', val: totalUsers, sub: 'CONNECTED', icon: Users, color: 'blue' },
              { label: 'Data Flow (OS)', val: totalOS, sub: 'PROCESSED', icon: Zap, color: 'amber' },
-             { label: 'Database Sync', val: '99.9%', sub: 'STABLE', icon: Database, color: 'purple' }
+             { label: 'Database Sync', val: '99.9%', sub: 'STABLE', icon: Database, color: 'purple' },
+             { label: 'Faturamento Previsto', val: 'R$ --', sub: 'Módulo Pendente', icon: DollarSign, color: 'emerald' }
            ].map((kpi, i) => (
              <div key={i} className="bg-[#0a0a0a] border border-zinc-900 rounded-[2.5rem] p-10 group relative overflow-hidden transition-all hover:border-zinc-800">
                 <div className={`absolute top-0 right-0 w-24 h-24 bg-${kpi.color}-500/5 blur-[40px] -mr-12 -mt-12`}></div>
