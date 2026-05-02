@@ -31,14 +31,10 @@ if (process.env.SENTRY_DSN) {
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
-import cookie from '@fastify/cookie';
 
 const app = Fastify({
   logger: true,
 });
-
-// Registrar Cookies
-app.register(cookie);
 
 // Segurança Hardened
 app.register(helmet, {
