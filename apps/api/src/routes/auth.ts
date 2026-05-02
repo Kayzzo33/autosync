@@ -63,7 +63,7 @@ const authRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           tenant_id: user.tenant_id,
           role: user.perfil,
         },
-        { expiresIn: '15m' }
+        { expiresIn: '7d' }
       );
 
       // Refresh Token
@@ -147,7 +147,7 @@ const authRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
         tenant_id: currUser.tenant_id,
         role: currUser.perfil,
       },
-      { expiresIn: '15m' }
+      { expiresIn: '7d' }
     );
 
     const newRefreshToken = crypto.randomBytes(40).toString('hex');
@@ -285,7 +285,7 @@ const authRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       // 5. Generate Auth Tokens
       const accessToken = app.jwt.sign(
         { sub: newUserId, tenant_id: newTenantId, role: 'admin' },
-        { expiresIn: '15m' }
+        { expiresIn: '7d' }
       );
 
       const refreshToken = crypto.randomBytes(40).toString('hex');
