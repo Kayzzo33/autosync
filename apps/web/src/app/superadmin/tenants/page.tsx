@@ -145,107 +145,104 @@ export default function TenantsPage() {
 
       {/* Instance Detail Panel (Copied from Dashboard) */}
       {selectedTenant && (
-        <div className="fixed inset-0 z-50 flex justify-end">
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setSelectedTenant(null)}></div>
-          <div className="relative w-full max-w-3xl h-full bg-[#050505] border-l border-zinc-900 p-16 overflow-y-auto animate-in slide-in-from-right duration-500">
+        <div className="fixed inset-0 z-[9999] bg-[#050505] overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
+          <div className="max-w-[1600px] mx-auto p-10 min-h-screen flex flex-col">
              
-             <div className="flex justify-between items-center mb-20">
+             <div className="flex justify-between items-center mb-16">
                 <div className="flex items-center gap-4">
-                   <div className="p-3 bg-zinc-900 rounded-2xl border border-zinc-800">
-                      <Cpu className="w-6 h-6 text-emerald-500" />
+                   <div className="p-4 bg-zinc-900/80 rounded-2xl border border-zinc-800">
+                      <Cpu className="w-8 h-8 text-emerald-500" />
                    </div>
-                   <h2 className="text-sm font-black text-zinc-500 uppercase tracking-[0.4em]">Instance Diagnostics</h2>
+                   <h2 className="text-xl font-black text-zinc-500 uppercase tracking-[0.4em]">Instance Diagnostics</h2>
                 </div>
                 <button 
                   onClick={() => setSelectedTenant(null)}
-                  className="p-4 bg-zinc-900 rounded-full hover:bg-zinc-800 transition-all border border-zinc-800"
+                  className="p-5 bg-zinc-900 rounded-full hover:bg-zinc-800 transition-all border border-zinc-800 group"
                 >
-                  <X className="w-6 h-6 text-white" />
+                  <X className="w-8 h-8 text-zinc-400 group-hover:text-white transition-colors" />
                 </button>
              </div>
 
-             <div className="flex items-center gap-10 mb-20">
-                <div className="w-32 h-32 rounded-[2.5rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center text-5xl font-black text-emerald-500 shadow-2xl shadow-emerald-500/10">
+             <div className="flex items-center gap-12 mb-20">
+                <div className="w-40 h-40 rounded-[3rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center text-7xl font-black text-emerald-500 shadow-2xl shadow-emerald-500/10">
                    {selectedTenant.nome[0]}
                 </div>
                 <div>
-                   <h2 className="text-5xl font-black text-white tracking-tighter mb-2 italic uppercase">{selectedTenant.nome}</h2>
-                   <div className="flex items-center gap-3">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedTenant.ativo ? 'bg-emerald-500 text-black' : 'bg-rose-500 text-white'}`}>
+                   <h2 className="text-7xl font-black text-white tracking-tighter mb-4 italic uppercase">{selectedTenant.nome}</h2>
+                   <div className="flex items-center gap-4">
+                      <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${selectedTenant.ativo ? 'bg-emerald-500 text-black' : 'bg-rose-500 text-white'}`}>
                          {selectedTenant.ativo ? 'ONLINE' : 'SUSPENDED'}
                       </span>
-                      <span className="text-zinc-700 font-mono text-xs">{selectedTenant.id}</span>
+                      <span className="text-zinc-600 font-mono text-sm tracking-widest">{selectedTenant.id}</span>
                    </div>
                 </div>
              </div>
 
-             {/* Tenant Specific Real Data */}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-                <div className="bg-[#0a0a0a] p-10 rounded-[2.5rem] border border-zinc-900">
-                   <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-4">Total O.S.</p>
-                   <div className="flex items-end gap-3">
-                      <h4 className="text-5xl font-black text-white leading-none">{selectedTenant.total_os}</h4>
-                      <Wrench className="w-6 h-6 text-zinc-800 mb-1" />
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+                <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
+                   <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Total O.S.</p>
+                   <div className="flex items-end justify-between">
+                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_os}</h4>
+                      <Wrench className="w-10 h-10 text-zinc-800 mb-2" />
                    </div>
                 </div>
-                <div className="bg-[#0a0a0a] p-10 rounded-[2.5rem] border border-zinc-900">
-                   <p className="text-[10px] font-black text-zinc-700 uppercase tracking-widest mb-4">Users Ledger</p>
-                   <div className="flex items-end gap-3">
-                      <h4 className="text-5xl font-black text-white leading-none">{selectedTenant.total_usuarios}</h4>
-                      <Users className="w-6 h-6 text-zinc-800 mb-1" />
+                <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
+                   <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Users Ledger</p>
+                   <div className="flex items-end justify-between">
+                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_usuarios}</h4>
+                      <Users className="w-10 h-10 text-zinc-800 mb-2" />
+                   </div>
+                </div>
+                {/* Consumption Limit Control */}
+                <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
+                   <div className="flex justify-between items-start mb-8">
+                      <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em]">Consumption Limit</p>
+                      <span className="text-[10px] font-black text-zinc-700 tracking-widest italic">MAX: {GLOBAL_LIMIT}</span>
+                   </div>
+                   
+                   <div className="space-y-6">
+                      <div className="flex justify-between text-xs font-black text-zinc-500 uppercase tracking-widest">
+                         <span>Monthly Usage</span>
+                         <span className="text-white">{Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%</span>
+                      </div>
+                      <div className="h-4 bg-zinc-950 rounded-full border border-zinc-900 overflow-hidden">
+                         <div 
+                           className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_15px_#10b98155]" 
+                           style={{ width: `${Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%` }}
+                         ></div>
+                      </div>
+                      <div className="flex justify-between text-[10px] font-medium text-zinc-700">
+                         <span>{selectedTenant.currentReq} REQS TODAY</span>
+                         <span>MAX HEALTHY: 85%</span>
+                      </div>
                    </div>
                 </div>
              </div>
 
              {/* Personal Request Graph */}
-             <div className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-zinc-900 mb-12">
-                <div className="flex justify-between items-center mb-10">
-                   <h3 className="text-xl font-black text-white uppercase tracking-tight">Request Volume (24H)</h3>
-                   <span className="text-[10px] font-black text-emerald-500/50">NODE_MONITOR_v1</span>
+             <div className="bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-zinc-900 mb-16 flex-1 flex flex-col">
+                <div className="flex justify-between items-center mb-12">
+                   <h3 className="text-2xl font-black text-white uppercase tracking-tight">Request Volume (24H)</h3>
+                   <span className="text-xs font-black text-emerald-500/50 tracking-widest">NODE_MONITOR_v1</span>
                 </div>
-                <div className="h-[250px] w-full">
+                <div className="flex-1 w-full min-h-[300px]">
                    <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={globalChartData.map(d => ({ ...d, load: Math.floor(d.load / 4) }))}>
                          <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
                          <Tooltip 
-                           contentStyle={{ backgroundColor: '#000', border: 'none', borderRadius: '12px' }}
-                           itemStyle={{ color: '#10b981' }}
+                           contentStyle={{ backgroundColor: '#000', border: 'none', borderRadius: '16px', padding: '16px' }}
+                           itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
                          />
-                         <Area type="monotone" dataKey="load" stroke="#10b981" strokeWidth={3} fill="#10b981" fillOpacity={0.05} />
+                         <Area type="monotone" dataKey="load" stroke="#10b981" strokeWidth={4} fill="#10b981" fillOpacity={0.05} />
                       </AreaChart>
                    </ResponsiveContainer>
                 </div>
              </div>
 
-             {/* Consumption Limit Control */}
-             <div className="bg-[#0a0a0a] p-10 rounded-[3rem] border border-zinc-900 space-y-8">
-                <div className="flex justify-between items-center">
-                   <h3 className="text-xl font-black text-white uppercase tracking-tight">Consumption Limit</h3>
-                   <span className="text-[10px] font-black text-zinc-700 tracking-widest italic">IMAGINARY LIMIT: {GLOBAL_LIMIT} REQ</span>
-                </div>
-                
-                <div className="space-y-4">
-                   <div className="flex justify-between text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                      <span>Monthly Usage</span>
-                      <span>{Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%</span>
-                   </div>
-                   <div className="h-3 bg-zinc-950 rounded-full border border-zinc-900 overflow-hidden">
-                      <div 
-                        className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_15px_#10b98155]" 
-                        style={{ width: `${Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%` }}
-                      ></div>
-                   </div>
-                   <div className="flex justify-between text-[10px] font-medium text-zinc-700">
-                      <span>{selectedTenant.currentReq} REQS TODAY</span>
-                      <span>MAX HEALTHY: 85%</span>
-                   </div>
-                </div>
-             </div>
-
-             <div className="mt-20 pt-10 border-t border-zinc-900 flex gap-4">
+             <div className="pt-10 border-t border-zinc-900/50 flex gap-6">
                 <button 
                   onClick={(e) => handleToggleStatus(e, selectedTenant.id)}
-                  className={`flex-1 py-6 rounded-3xl font-black text-xs uppercase tracking-widest transition-all ${selectedTenant.ativo ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500 text-black shadow-2xl'}`}
+                  className={`px-16 py-8 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 ${selectedTenant.ativo ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500 text-black shadow-2xl shadow-emerald-500/20'}`}
                 >
                   {selectedTenant.ativo ? 'SUSPEND INSTANCE' : 'RESTORE ACCESS'}
                 </button>
