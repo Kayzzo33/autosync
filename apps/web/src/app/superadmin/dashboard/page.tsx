@@ -237,12 +237,30 @@ export default function SuperadminDashboard() {
                     <div className="flex items-center gap-2 text-xs text-zinc-500 mt-1">
                       <Wrench className="w-3 h-3" /> {tenant.total_os} OS
                     </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-medium text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full inline-block">Ativo</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Seção de Logs de Auditoria */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-white font-semibold text-xl">Logs de Auditoria</h2>
+            <p className="text-zinc-500 text-sm">Monitoramento de ações administrativas em tempo real</p>
+          </div>
           <span className="text-xs text-zinc-500 flex items-center gap-1">
             <AlertTriangle className="w-3 h-3" />
             Mostrando os últimos {logs.length} eventos (Limpeza automática ativada)
           </span>
         </div>
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-2xl">
           <table className="w-full text-left text-sm">
             <thead className="bg-zinc-950 text-zinc-400">
               <tr>
@@ -253,25 +271,25 @@ export default function SuperadminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-800 text-zinc-300">
-              {logs.map(log => (
-                <tr key={log.id} className="hover:bg-zinc-800/50">
+              {logs.map((log: any, idx: number) => (
+                <tr key={log.id || idx} className="hover:bg-zinc-800/50 transition-colors">
                   <td className="px-6 py-3 whitespace-nowrap text-zinc-400">
-                    {format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss")}
+                    {log.created_at ? format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss") : '--'}
                   </td>
                   <td className="px-6 py-3 font-mono text-xs">{log.ip}</td>
-                  <td className="px-6 py-3 font-medium text-yellow-500">
-                    <span className="bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded text-xs">
+                  <td className="px-6 py-3">
+                    <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">
                       {log.acao}
                     </span>
                   </td>
-                  <td className="px-6 py-3 font-mono text-xs text-zinc-500">
+                  <td className="px-6 py-3 font-mono text-xs text-zinc-500 max-w-xs truncate">
                     {JSON.stringify(log.detalhes)}
                   </td>
                 </tr>
               ))}
               {logs.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="px-6 py-6 text-center text-zinc-600 italic">
+                  <td colSpan={4} className="px-6 py-12 text-center text-zinc-600 italic">
                     Nenhum log de auditoria disponível ainda.
                   </td>
                 </tr>

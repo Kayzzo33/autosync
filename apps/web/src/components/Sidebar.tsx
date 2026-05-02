@@ -72,13 +72,13 @@ export function Sidebar() {
         })}
 
         {/* Link Dinâmico para TV/CRM */}
-        {user?.tenantSlug && (
+        {user?.tenant_slug && (
           <div className="pt-4 mt-4 border-t border-slate-800">
             <div className="px-3 mb-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
               Visualização
             </div>
             <Link
-              href={`/tv/${user.tenantSlug}`}
+              href={`/tv/${user.tenant_slug}`}
               target="_blank"
               className="flex items-center gap-3 px-3 py-2 rounded-md transition-colors text-sm font-medium text-slate-400 hover:text-white hover:bg-emerald-500/10 hover:text-emerald-400 group"
             >
@@ -111,10 +111,10 @@ export function Sidebar() {
 
         <div className="flex items-center gap-3 bg-slate-800 rounded-lg p-3">
           <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white font-bold text-sm">
-            {user?.name?.[0] || 'AD'}
+            {user?.nome?.[0] || 'AD'}
           </div>
           <div className="flex flex-col text-sm overflow-hidden">
-            <span className="text-white font-medium truncate">{user?.name || 'Admin'}</span>
+            <span className="text-white font-medium truncate">{user?.nome || 'Admin'}</span>
             <span className="text-slate-500 text-xs truncate">Oficina Matriz</span>
           </div>
         </div>

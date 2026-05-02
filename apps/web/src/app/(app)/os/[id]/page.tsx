@@ -22,7 +22,7 @@ interface Item {
 
 interface OS {
   id: string;
-  status: 'aberta' | 'em_andamento' | 'pronta' | 'fechada' | 'cancelada';
+  status: 'aberta' | 'em_andamento' | 'pronta' | 'fechada' | 'cancelada' | 'aguardando_peca';
   created_at: string;
   cliente_nome: string;
   cliente_telefone: string;
@@ -30,6 +30,7 @@ interface OS {
   modelo: string;
   marca: string;
   mecanico_nome: string;
+  tenant_name?: string;
   km_entrada: number;
   km_saida?: number;
   valor_total: number;
@@ -210,7 +211,8 @@ export default function OSDetailPage() {
     em_andamento: 'bg-indigo-100 text-indigo-700',
     pronta: 'bg-emerald-100 text-emerald-700',
     fechada: 'bg-blue-100 text-blue-700',
-    cancelada: 'bg-rose-100 text-rose-700'
+    cancelada: 'bg-rose-100 text-rose-700',
+    aguardando_peca: 'bg-amber-100 text-amber-700'
   };
 
   return (

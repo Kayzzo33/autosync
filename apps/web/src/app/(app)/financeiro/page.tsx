@@ -171,7 +171,7 @@ export default function FinanceiroPage() {
                     color: 'var(--foreground, #171717)'
                   }}
                   itemStyle={{ color: 'var(--foreground, #171717)' }}
-                  formatter={(value: number) => [`R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
+                  formatter={(value: any) => [`R$ ${Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, '']}
                 />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
                 <Bar dataKey="entrada" name="Entradas" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />

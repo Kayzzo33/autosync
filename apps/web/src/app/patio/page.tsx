@@ -8,7 +8,7 @@ import {
 import { api } from '@/services/api';
 import { useAuth } from '@/contexts/AuthContext';
 
-type StatusEnum = 'aberta' | 'em_andamento' | 'pronta';
+type StatusEnum = 'aberta' | 'em_andamento' | 'pronta' | 'aguardando_peca';
 
 interface KanbanOS {
   id: string;

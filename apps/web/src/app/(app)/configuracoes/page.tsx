@@ -28,6 +28,7 @@ interface Tenant {
   cnpj?: string;
   telefone?: string;
   endereco?: string;
+  subdominio?: string;
   whatsapp_templates?: Record<string, string>;
 }
 
