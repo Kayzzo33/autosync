@@ -122,6 +122,19 @@ export default function SuperadminDashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="bg-rose-500/10 border border-rose-500/20 p-8 rounded-2xl max-w-lg text-center space-y-4">
+           <AlertTriangle className="w-12 h-12 text-rose-500 mx-auto" />
+           <h2 className="text-xl font-black text-white uppercase">Erro de Comunicação</h2>
+           <p className="text-zinc-400 text-sm">{error}</p>
+           <p className="text-xs text-rose-500 mt-4">Verifique se as chaves ADMIN_API_KEY do backend e frontend são iguais, e se a API está online.</p>
+        </div>
+      </div>
+    );
+  }
+
   const activeTenants = tenants.filter(t => t.ativo).length;
   const totalUsers = tenants.reduce((acc, t) => acc + Number(t.total_usuarios || 0), 0);
   const totalOS = tenants.reduce((acc, t) => acc + Number(t.total_os || 0), 0);
@@ -241,9 +254,6 @@ export default function SuperadminDashboard() {
         </div>
 
         {/* Instances Grid (Premium Cards) */}
-                </div>
-             </div>
-
              <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8">
                 {filteredTenants.map((tenant) => {
                    const currentReq = tenant.total_reqs || 0;
@@ -409,6 +419,5 @@ export default function SuperadminDashboard() {
           </div>
         )}
       </div>
-    </>
   );
 }
