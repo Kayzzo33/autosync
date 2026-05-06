@@ -87,7 +87,7 @@ export function useTutorial() {
 
     const driverObj = driver({
       showProgress: true,
-      progressText: 'Passo {{current}} de 6',
+      progressText: 'Passo {{current}} de 11',
       doneBtnText: 'Concluir',
       nextBtnText: 'Próximo',
       prevBtnText: 'Anterior',
@@ -120,6 +120,13 @@ export function useTutorial() {
           }
         },
         {
+          element: '[data-tutorial="menu-patio"]',
+          popover: {
+            title: 'Pátio / TV',
+            description: 'Acompanhe os veículos em tempo real como num painel de aeroporto. Ideal para deixar numa TV na oficina, assim todos sabem o status de cada carro.'
+          }
+        },
+        {
           element: '[data-tutorial="menu-financeiro"]',
           popover: {
             title: 'Financeiro',
@@ -134,10 +141,38 @@ export function useTutorial() {
           }
         },
         {
+          element: '[data-tutorial="menu-equipe"]',
+          popover: {
+            title: 'Gestão da Equipe',
+            description: 'Cadastre seus mecânicos, defina as permissões de acesso e acompanhe a produtividade de cada um. Saiba exatamente quem mexeu em qual veículo.'
+          }
+        },
+        {
+          element: '[data-tutorial="menu-leads"]',
+          popover: {
+            title: 'Gestão de Leads',
+            description: 'Não perca nenhum orçamento! Cadastre aqui pessoas que entraram em contato mas ainda não fecharam serviço. Acompanhe o funil de vendas até o fechamento.'
+          }
+        },
+        {
           element: '[data-tutorial="menu-whatsapp"]',
           popover: {
             title: 'WhatsApp automático',
             description: 'O sistema avisa seus clientes pelo WhatsApp automaticamente: quando o carro fica pronto, quando está na hora de fazer revisão e envia pesquisa de satisfação após o atendimento. Tudo sem você precisar fazer nada.',
+          }
+        },
+        {
+          element: '[data-tutorial="menu-integracoes"]',
+          popover: {
+            title: 'Integrações e Marketing',
+            description: 'Nossa área mais avançada! Conecte ferramentas de marketing, configure disparo de mensagens em massa e crie campanhas para reativar clientes.'
+          }
+        },
+        {
+          element: '[data-tutorial="menu-configuracoes"]',
+          popover: {
+            title: 'Configurações do Sistema',
+            description: 'Personalize o AutoSync com os dados da sua oficina, horários de funcionamento, logomarca e preferências de notificações.'
           }
         },
         {
