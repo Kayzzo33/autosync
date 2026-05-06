@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { superadminLogout } from '../actions';
+import { useRouter } from 'next/navigation';
+import { superadminLogout, getTenants, getLogs, generateInvite, toggleTenantStatus } from '../actions';
 import { format } from 'date-fns';
 import { 
   AreaChart, 
@@ -42,6 +43,7 @@ import { toast } from 'sonner';
 import Link from 'next/link';
 
 export default function SuperadminDashboard() {
+  const router = useRouter();
   const [tenants, setTenants] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,26 +59,19 @@ export default function SuperadminDashboard() {
   }, []);
 
   const fetchData = async () => {
+    setLoading(true);
+    setError('');
     try {
-      const [tenantsRes, logsRes] = await Promise.all([
-        fetch('/api/superadmin/tenants', { cache: 'no-store' }),
-        fetch('/api/superadmin/logs', { cache: 'no-store' })
+      const [tenantsResult, logsResult] = await Promise.all([
+        getTenants(),
+        getLogs(),
       ]);
 
-      if (!tenantsRes.ok) {
-        const errJson = await tenantsRes.json().catch(() => ({}));
-        throw new Error(`Tenants Error: ${errJson.error || tenantsRes.statusText}`);
-      }
-      if (!logsRes.ok) {
-        const errJson = await logsRes.json().catch(() => ({}));
-        throw new Error(`Logs Error: ${errJson.error || logsRes.statusText}`);
-      }
+      if (tenantsResult.error) throw new Error(`Tenants: ${tenantsResult.error}`);
+      if (logsResult.error) throw new Error(`Logs: ${logsResult.error}`);
 
-      const tenantsData = await tenantsRes.json();
-      const logsData = await logsRes.json();
-
-      setTenants(Array.isArray(tenantsData) ? tenantsData : []);
-      setLogs(Array.isArray(logsData) ? logsData : []);
+      setTenants(Array.isArray(tenantsResult.data) ? tenantsResult.data : []);
+      setLogs(Array.isArray(logsResult.data) ? logsResult.data : []);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -86,15 +81,12 @@ export default function SuperadminDashboard() {
 
   const handleCreateInvite = async () => {
     try {
-      const res = await fetch('/api/superadmin/convites', { method: 'POST' });
-      if (!res.ok) throw new Error('Falha ao gerar convite');
+      const result = await generateInvite();
+      if (result.error) throw new Error(result.error);
       
-      const data = await res.json();
-      const inviteUrl = `${window.location.origin}/cadastro?token=${data.token}`;
-      
+      const inviteUrl = `${window.location.origin}/cadastro?token=${result.data.token}`;
       navigator.clipboard.writeText(inviteUrl);
       toast.success('Convite gerado e copiado para a área de transferência!');
-      
     } catch (err: any) {
       toast.error('Erro ao gerar convite: ' + err.message);
     }
@@ -103,13 +95,13 @@ export default function SuperadminDashboard() {
   const handleToggleStatus = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     try {
-      const res = await fetch(`/api/superadmin/tenants/${id}/suspender`, {
-        method: 'PATCH'
-      });
-      if (!res.ok) throw new Error('Falha ao alterar status');
+      const result = await toggleTenantStatus(id);
+      if (result.error) throw new Error(result.error);
       
       toast.success('Status da instância atualizado com sucesso!');
-      fetchData();
+      // Força o Next.js a invalidar o cache e rebuscar os dados do servidor
+      router.refresh();
+      await fetchData();
       if (selectedTenant && selectedTenant.id === id) {
          setSelectedTenant({ ...selectedTenant, ativo: !selectedTenant.ativo });
       }

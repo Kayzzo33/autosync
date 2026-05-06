@@ -1,10 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ShieldAlert, Search, Filter, Clock } from 'lucide-react';
 import { format } from 'date-fns';
+import { getLogs } from '../actions';
 
 export default function LogsPage() {
+  const router = useRouter();
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,13 +17,9 @@ export default function LogsPage() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/superadmin/logs', { cache: 'no-store' });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(`API Error: ${errJson.error || res.statusText}`);
-      }
-      const data = await res.json();
-      setLogs(Array.isArray(data) ? data : []);
+      const result = await getLogs();
+      if (result.error) throw new Error(result.error);
+      setLogs(Array.isArray(result.data) ? result.data : []);
     } catch (err: any) {
       console.error(err);
       setError(err.message);

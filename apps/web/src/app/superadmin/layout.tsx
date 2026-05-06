@@ -1,5 +1,11 @@
 'use client';
 
+// Garante que o Next.js nunca sirva cache para nenhuma página do painel superadmin.
+// Sem isso, ao fazer F5 após um novo deploy, o usuário continuaria vendo a versão
+// antiga em memória do router cache do Next.js por até 30 segundos.
+export const dynamic = 'force-dynamic';
+
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
