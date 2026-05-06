@@ -85,7 +85,7 @@ export default function TenantsPage() {
 
       <div className="grid grid-cols-1 gap-4">
         {filteredTenants.map((tenant) => {
-          const currentReq = Math.floor(Math.random() * 8000) + 1200; // Mocked
+          const currentReq = tenant.total_reqs || 0;
           
           return (
           <div 
@@ -143,12 +143,27 @@ export default function TenantsPage() {
         )}
       </div>
 
-      {/* Instance Detail Panel (Copied from Dashboard) */}
+  // Empty data for chart as there is no live data yet
+  const globalChartData = [
+    { time: '00:00', load: 0 },
+              </div>
+            </div>
+            );
+          })}
+
+          {filteredTenants.length === 0 && (
+            <div className="col-span-full py-20 text-center border border-dashed border-zinc-800 rounded-3xl bg-[#0a0a0a]">
+              <Building2 className="w-12 h-12 text-zinc-800 mx-auto mb-4" />
+              <p className="text-zinc-500 font-medium">Nenhum inquilino encontrado</p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {selectedTenant && (
-        <div className="fixed inset-0 z-[9999] bg-[#050505] overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
-          <div className="max-w-[1600px] mx-auto p-10 min-h-screen flex flex-col">
-             
-             <div className="flex justify-between items-center mb-16">
+        <div className="fixed inset-0 z-[99999] bg-[#050505] overflow-y-auto animate-in fade-in zoom-in-95 duration-300 pointer-events-auto flex flex-col items-center justify-start">
+          <div className="w-full max-w-[1600px] w-[95%] p-10 min-h-screen flex flex-col">
+             <div className="flex justify-between items-center mb-16 mt-8">
                 <div className="flex items-center gap-4">
                    <div className="p-4 bg-zinc-900/80 rounded-2xl border border-zinc-800">
                       <Cpu className="w-8 h-8 text-emerald-500" />
@@ -182,18 +197,17 @@ export default function TenantsPage() {
                 <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
                    <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Total O.S.</p>
                    <div className="flex items-end justify-between">
-                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_os}</h4>
+                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_os || 0}</h4>
                       <Wrench className="w-10 h-10 text-zinc-800 mb-2" />
                    </div>
                 </div>
                 <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
                    <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Users Ledger</p>
                    <div className="flex items-end justify-between">
-                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_usuarios}</h4>
+                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_usuarios || 0}</h4>
                       <Users className="w-10 h-10 text-zinc-800 mb-2" />
                    </div>
                 </div>
-                {/* Consumption Limit Control */}
                 <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
                    <div className="flex justify-between items-start mb-8">
                       <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em]">Consumption Limit</p>
@@ -219,16 +233,16 @@ export default function TenantsPage() {
                 </div>
              </div>
 
-             {/* Personal Request Graph */}
              <div className="bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-zinc-900 mb-16 flex-1 flex flex-col">
                 <div className="flex justify-between items-center mb-12">
                    <h3 className="text-2xl font-black text-white uppercase tracking-tight">Request Volume (24H)</h3>
                    <span className="text-xs font-black text-emerald-500/50 tracking-widest">NODE_MONITOR_v1</span>
                 </div>
                 <div className="flex-1 w-full min-h-[300px]">
-                   <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={globalChartData.map(d => ({ ...d, load: Math.floor(d.load / 4) }))}>
+                   <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={globalChartData}>
                          <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
+                         <XAxis dataKey="time" stroke="#3f3f46" fontSize={10} tickLine={false} axisLine={false} dy={10} />
                          <Tooltip 
                            contentStyle={{ backgroundColor: '#000', border: 'none', borderRadius: '16px', padding: '16px' }}
                            itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
@@ -239,7 +253,7 @@ export default function TenantsPage() {
                 </div>
              </div>
 
-             <div className="pt-10 border-t border-zinc-900/50 flex gap-6">
+             <div className="pt-10 border-t border-zinc-900/50 flex gap-6 pb-20">
                 <button 
                   onClick={(e) => handleToggleStatus(e, selectedTenant.id)}
                   className={`px-16 py-8 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 ${selectedTenant.ativo ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500 text-black shadow-2xl shadow-emerald-500/20'}`}
@@ -250,6 +264,6 @@ export default function TenantsPage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -23,22 +23,16 @@ export default function SettingsPage() {
           
           <div className="space-y-6">
             <div className="space-y-3">
-              <label className="block text-[10px] font-black text-zinc-600 uppercase tracking-widest">Master API Key</label>
+              <label className="block text-[10px] font-black text-zinc-600 uppercase tracking-widest">Painel de Controle</label>
               <div className="relative group/key">
                 <div className="absolute inset-0 bg-emerald-500/5 blur-xl group-hover/key:bg-emerald-500/10 transition-all"></div>
                 <div className="relative bg-zinc-950 border border-zinc-900 rounded-2xl px-6 py-4 flex items-center justify-between">
-                   <span className="text-zinc-600 font-mono text-sm tracking-widest">••••••••••••••••</span>
-                   <Key className="w-4 h-4 text-zinc-800" />
+                   <span className="text-emerald-500 font-mono text-sm tracking-widest">Acesso Seguro Autenticado</span>
+                   <Shield className="w-4 h-4 text-emerald-500" />
                 </div>
               </div>
-              <p className="text-[10px] text-zinc-600 italic">A chave mestre de API é injetada via variáveis de ambiente do servidor para máxima segurança.</p>
+              <p className="text-[10px] text-zinc-600 italic">A infraestrutura usa chaves mantidas exclusivamente no lado do servidor para máxima segurança, sem exposição ao cliente.</p>
             </div>
-            <button 
-              onClick={() => toast.info('A rotação de chaves requer acesso ao terminal do Railway.')}
-              className="w-full py-4 bg-zinc-900 border border-zinc-800 rounded-2xl text-[10px] font-black text-emerald-500 uppercase tracking-widest hover:bg-zinc-800 hover:text-emerald-400 transition-all"
-            >
-               Gerar Nova Master Key
-            </button>
           </div>
         </div>
 

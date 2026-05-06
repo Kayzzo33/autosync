@@ -39,6 +39,8 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import Link from 'next/link';
+
 export default function SuperadminDashboard() {
   const [tenants, setTenants] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
@@ -50,104 +52,95 @@ export default function SuperadminDashboard() {
   // Limite imaginário de consumo (Requisições por mês)
   const GLOBAL_LIMIT = 50000;
 
-  const loadData = async () => {
-    setLoading(true);
-    setError('');
+  useEffect(() => {
+    fetchData();
+  }, []);
 
+  const fetchData = async () => {
     try {
-      const tenantsRes = await fetch('/api/superadmin/tenants', { cache: 'no-store' });
+      const [tenantsRes, logsRes] = await Promise.all([
+        fetch('/api/superadmin/tenants', { cache: 'no-store' }),
+        fetch('/api/superadmin/logs', { cache: 'no-store' })
+      ]);
+
+      if (!tenantsRes.ok || !logsRes.ok) throw new Error('Falha ao buscar dados');
+
       const tenantsData = await tenantsRes.json();
-
-      if (!tenantsRes.ok) {
-        setError(`${tenantsData.error || 'Erro desconhecido'}`);
-        setLoading(false);
-        return;
-      }
-
-      const logsRes = await fetch('/api/superadmin/logs', { cache: 'no-store' });
       const logsData = await logsRes.json();
 
       setTenants(Array.isArray(tenantsData) ? tenantsData : []);
       setLogs(Array.isArray(logsData) ? logsData : []);
     } catch (err: any) {
-      setError(`Erro de comunicação: ${err.message}`);
+      setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const handleToggleStatus = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    try {
-      const res = await fetch(`/api/superadmin/tenants/${id}/suspender`, {
-        method: 'PATCH',
-      });
-      if (res.ok) {
-        toast.success('Estado do sistema alterado', {
-          description: 'A instância teve seu acesso modificado com sucesso.'
-        });
-        loadData();
-        if (selectedTenant?.id === id) {
-          setSelectedTenant({ ...selectedTenant, ativo: !selectedTenant.ativo });
-        }
-      }
-    } catch (err) {
-      toast.error('Erro de sincronização');
     }
   };
 
   const handleCreateInvite = async () => {
     try {
       const res = await fetch('/api/superadmin/convites', { method: 'POST' });
+      if (!res.ok) throw new Error('Falha ao gerar convite');
+      
       const data = await res.json();
-      if (res.ok) {
-        // Build URL on frontend to avoid "undefined" from backend env
-        const inviteUrl = `${window.location.origin}/cadastro?token=${data.token}`;
-        navigator.clipboard.writeText(inviteUrl);
-        toast.success('Invite link generated!', {
-          description: 'Copiado para a área de transferência.'
-        });
+      const inviteUrl = `${window.location.origin}/cadastro?token=${data.token}`;
+      
+      navigator.clipboard.writeText(inviteUrl);
+      toast.success('Convite gerado e copiado para a área de transferência!');
+      
+    } catch (err: any) {
+      toast.error('Erro ao gerar convite: ' + err.message);
+    }
+  };
+
+  const handleToggleStatus = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    try {
+      const res = await fetch(`/api/superadmin/tenants/${id}/suspender`, {
+        method: 'PATCH'
+      });
+      if (!res.ok) throw new Error('Falha ao alterar status');
+      
+      toast.success('Status da instância atualizado com sucesso!');
+      fetchData();
+      if (selectedTenant && selectedTenant.id === id) {
+         setSelectedTenant({ ...selectedTenant, ativo: !selectedTenant.ativo });
       }
-    } catch (err) {
-      toast.error('Failed to generate token');
+    } catch (err: any) {
+      toast.error('Erro ao alterar status da instância.');
     }
   };
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[80vh] bg-[#050505]">
-        <div className="relative">
-          <div className="w-20 h-20 border-4 border-emerald-500/10 rounded-full"></div>
-          <div className="absolute top-0 w-20 h-20 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+           <div className="w-16 h-16 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
+           <p className="text-emerald-500 font-black tracking-[0.3em] uppercase text-sm animate-pulse">Initializing Control Center</p>
         </div>
-        <p className="mt-8 text-zinc-600 font-mono text-[10px] tracking-[0.4em] uppercase animate-pulse">Establishing Secure Connection...</p>
       </div>
     );
   }
 
   const activeTenants = tenants.filter(t => t.ativo).length;
-  const totalUsers = tenants.reduce((acc, t) => acc + parseInt(t.total_usuarios || 0), 0);
-  const totalOS = tenants.reduce((acc, t) => acc + parseInt(t.total_os || 0), 0);
-
-  // Mocked global load
-  const globalChartData = [
-    { time: '00:00', load: 1200 },
-    { time: '04:00', load: 800 },
-    { time: '08:00', load: 2400 },
-    { time: '12:00', load: 4800 },
-    { time: '16:00', load: 3900 },
-    { time: '20:00', load: 2100 },
-    { time: '23:59', load: 1500 },
-  ];
+  const totalUsers = tenants.reduce((acc, t) => acc + Number(t.total_usuarios || 0), 0);
+  const totalOS = tenants.reduce((acc, t) => acc + Number(t.total_os || 0), 0);
 
   const filteredTenants = tenants.filter(t => 
     t.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
     t.id.includes(searchTerm)
   );
+
+  // Empty data for chart as there is no live data yet
+  const globalChartData = [
+    { time: '00:00', load: 0 },
+    { time: '04:00', load: 0 },
+    { time: '08:00', load: 0 },
+    { time: '12:00', load: 0 },
+    { time: '16:00', load: 0 },
+    { time: '20:00', load: 0 },
+    { time: '23:59', load: 0 },
+  ];
 
   return (
     <div className="min-h-screen bg-[#050505] text-zinc-400 font-sans">
@@ -172,13 +165,22 @@ export default function SuperadminDashboard() {
              </div>
           </div>
           
-          <button 
-            onClick={handleCreateInvite}
-            className="group flex items-center gap-4 bg-emerald-500 text-black px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest transition-all hover:bg-emerald-400 hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.3)] active:scale-95 shadow-2xl"
-          >
-            <Plus className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-            Provisionar Nova Instância
-          </button>
+          <div className="flex items-center gap-4">
+             <Link 
+               href="/superadmin/logs"
+               className="group flex items-center gap-3 bg-zinc-900 border border-zinc-800 text-white px-8 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest transition-all hover:bg-zinc-800 active:scale-95 shadow-2xl"
+             >
+               <ShieldCheck className="w-5 h-5 text-emerald-500 group-hover:text-emerald-400 transition-colors" />
+               Central de Segurança
+             </Link>
+             <button 
+               onClick={handleCreateInvite}
+               className="group flex items-center gap-4 bg-emerald-500 text-black px-10 py-5 rounded-[2rem] font-black text-xs uppercase tracking-widest transition-all hover:bg-emerald-400 hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.3)] active:scale-95 shadow-2xl"
+             >
+               <Plus className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+               Provisionar Nova Instância
+             </button>
+          </div>
         </div>
 
         {/* Global Network Metrics */}
@@ -239,192 +241,174 @@ export default function SuperadminDashboard() {
         </div>
 
         {/* Instances Grid (Premium Cards) */}
-        <div className="space-y-10">
-           <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-zinc-900 pb-10">
-              <div>
-                 <h2 className="text-3xl font-black text-white tracking-tighter">Instâncias de Produção</h2>
-                 <p className="text-zinc-600 font-medium">Controle de limites e integridade de dados individuais</p>
-              </div>
-              <div className="relative w-full md:w-[450px]">
-                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
-                 <input 
-                   type="text" 
-                   placeholder="SEARCH CORE ID OR NAME..."
-                   value={searchTerm}
-                   onChange={e => setSearchTerm(e.target.value)}
-                   className="w-full bg-[#0a0a0a] border border-zinc-900 rounded-full py-5 pl-14 pr-6 text-xs text-white focus:outline-none focus:border-emerald-500/50 transition-all uppercase font-bold tracking-widest placeholder:text-zinc-800"
-                 />
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8">
-              {filteredTenants.map((tenant) => {
-                 // Cálculo de "Saúde" baseado em limite imaginário
-                 const currentReq = Math.floor(Math.random() * 8000) + 1200; // Mocked
-                 const healthPercent = Math.min(Math.round((currentReq / 10000) * 100), 100);
-                 const isHealthy = tenant.ativo && healthPercent < 80;
-
-                 return (
-                    <div 
-                      key={tenant.id} 
-                      onClick={() => setSelectedTenant({ ...tenant, currentReq })}
-                      className={`group bg-[#0a0a0a] border border-zinc-900 rounded-[2.5rem] p-10 hover:border-zinc-700 transition-all cursor-pointer relative overflow-hidden ${!tenant.ativo ? 'opacity-40' : ''}`}
-                    >
-                       <div className="flex justify-between items-start mb-12">
-                          <div className="flex items-center gap-6">
-                             <div className="w-16 h-16 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-2xl font-black text-zinc-400 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">
-                                {tenant.nome[0].toUpperCase()}
-                             </div>
-                             <div>
-                                <h3 className="text-white font-black text-xl tracking-tight group-hover:text-emerald-400 transition-colors">{tenant.nome}</h3>
-                                <p className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest mt-1">INSTANCE_ID: {tenant.id.slice(0, 8)}</p>
-                             </div>
-                          </div>
-                          <button 
-                            onClick={(e) => handleToggleStatus(e, tenant.id)}
-                            className={`p-4 rounded-2xl transition-all ${tenant.ativo ? 'bg-rose-500/5 text-rose-500/50 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500/10 text-emerald-500'}`}
-                          >
-                            {tenant.ativo ? <PowerOff className="w-5 h-5" /> : <Power className="w-5 h-5" />}
-                          </button>
-                       </div>
-
-                       <div className="grid grid-cols-2 gap-4 mb-10">
-                          <div className="bg-zinc-950 p-6 rounded-[1.5rem] border border-zinc-900/50">
-                             <p className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mb-2">Users Connect</p>
-                             <p className="text-2xl font-black text-white">{tenant.total_usuarios}</p>
-                          </div>
-                          <div className="bg-zinc-950 p-6 rounded-[1.5rem] border border-zinc-900/50">
-                             <p className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mb-2">OS Ledger</p>
-                             <p className="text-2xl font-black text-white">{tenant.total_os}</p>
-                          </div>
-                       </div>
-
-                       <div className="space-y-4">
-                          <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
-                             <span className="text-zinc-600">Instance Health</span>
-                             <span className={isHealthy ? 'text-emerald-500' : 'text-rose-500'}>{isHealthy ? 'STABLE' : (tenant.ativo ? 'CRITICAL LOAD' : 'OFFLINE')}</span>
-                          </div>
-                          <div className="h-2 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-900">
-                             <div 
-                               className={`h-full transition-all duration-1000 ${isHealthy ? 'bg-emerald-500' : (tenant.ativo ? 'bg-rose-500' : 'bg-zinc-800')}`} 
-                               style={{ width: tenant.ativo ? `${healthPercent}%` : '0%' }}
-                             ></div>
-                          </div>
-                       </div>
-                    </div>
-                 );
-              })}
-           </div>
-        </div>
-      </div>
-
-      {/* Instance Detail Panel (Premium Full View) */}
-      {selectedTenant && (
-        <div className="fixed inset-0 z-[9999] bg-[#050505] overflow-y-auto animate-in fade-in zoom-in-95 duration-300">
-          <div className="max-w-[1600px] mx-auto p-10 min-h-screen flex flex-col">
-             
-             <div className="flex justify-between items-center mb-16">
-                <div className="flex items-center gap-4">
-                   <div className="p-4 bg-zinc-900/80 rounded-2xl border border-zinc-800">
-                      <Cpu className="w-8 h-8 text-emerald-500" />
-                   </div>
-                   <h2 className="text-xl font-black text-zinc-500 uppercase tracking-[0.4em]">Instance Diagnostics</h2>
-                </div>
-                <button 
-                  onClick={() => setSelectedTenant(null)}
-                  className="p-5 bg-zinc-900 rounded-full hover:bg-zinc-800 transition-all border border-zinc-800 group"
-                >
-                  <X className="w-8 h-8 text-zinc-400 group-hover:text-white transition-colors" />
-                </button>
-             </div>
-
-             <div className="flex items-center gap-12 mb-20">
-                <div className="w-40 h-40 rounded-[3rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center text-7xl font-black text-emerald-500 shadow-2xl shadow-emerald-500/10">
-                   {selectedTenant.nome[0]}
-                </div>
-                <div>
-                   <h2 className="text-7xl font-black text-white tracking-tighter mb-4 italic uppercase">{selectedTenant.nome}</h2>
-                   <div className="flex items-center gap-4">
-                      <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${selectedTenant.ativo ? 'bg-emerald-500 text-black' : 'bg-rose-500 text-white'}`}>
-                         {selectedTenant.ativo ? 'ONLINE' : 'SUSPENDED'}
-                      </span>
-                      <span className="text-zinc-600 font-mono text-sm tracking-widest">{selectedTenant.id}</span>
-                   </div>
                 </div>
              </div>
 
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
-                <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
-                   <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Total O.S.</p>
-                   <div className="flex items-end justify-between">
-                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_os}</h4>
-                      <Wrench className="w-10 h-10 text-zinc-800 mb-2" />
-                   </div>
-                </div>
-                <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
-                   <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Users Ledger</p>
-                   <div className="flex items-end justify-between">
-                      <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_usuarios}</h4>
-                      <Users className="w-10 h-10 text-zinc-800 mb-2" />
-                   </div>
-                </div>
-                {/* Consumption Limit Control */}
-                <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
-                   <div className="flex justify-between items-start mb-8">
-                      <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em]">Consumption Limit</p>
-                      <span className="text-[10px] font-black text-zinc-700 tracking-widest italic">MAX: {GLOBAL_LIMIT}</span>
-                   </div>
-                   
-                   <div className="space-y-6">
-                      <div className="flex justify-between text-xs font-black text-zinc-500 uppercase tracking-widest">
-                         <span>Monthly Usage</span>
-                         <span className="text-white">{Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%</span>
+             <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-8">
+                {filteredTenants.map((tenant) => {
+                   const currentReq = tenant.total_reqs || 0;
+                   const healthPercent = Math.min(Math.round((currentReq / GLOBAL_LIMIT) * 100), 100);
+                   const isHealthy = tenant.ativo && healthPercent < 80;
+
+                   return (
+                      <div 
+                        key={tenant.id} 
+                        onClick={() => setSelectedTenant({ ...tenant, currentReq })}
+                        className={`group bg-[#0a0a0a] border border-zinc-900 rounded-[2.5rem] p-10 hover:border-zinc-700 transition-all cursor-pointer relative overflow-hidden ${!tenant.ativo ? 'opacity-40' : ''}`}
+                      >
+                         <div className="flex justify-between items-start mb-12">
+                            <div className="flex items-center gap-6">
+                               <div className="w-16 h-16 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-2xl font-black text-zinc-400 group-hover:text-emerald-500 group-hover:border-emerald-500/30 transition-all">
+                                  {tenant.nome[0].toUpperCase()}
+                               </div>
+                               <div>
+                                  <h3 className="text-white font-black text-xl tracking-tight group-hover:text-emerald-400 transition-colors">{tenant.nome}</h3>
+                                  <p className="text-[10px] font-mono text-zinc-700 uppercase tracking-widest mt-1">INSTANCE_ID: {tenant.id.slice(0, 8)}</p>
+                               </div>
+                            </div>
+                            <button 
+                              onClick={(e) => handleToggleStatus(e, tenant.id)}
+                              className={`p-4 rounded-2xl transition-all ${tenant.ativo ? 'bg-rose-500/5 text-rose-500/50 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500/10 text-emerald-500'}`}
+                            >
+                              {tenant.ativo ? <PowerOff className="w-5 h-5" /> : <Power className="w-5 h-5" />}
+                            </button>
+                         </div>
+
+                         <div className="grid grid-cols-2 gap-4 mb-10">
+                            <div className="bg-zinc-950 p-6 rounded-[1.5rem] border border-zinc-900/50">
+                               <p className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mb-2">Users Connect</p>
+                               <p className="text-2xl font-black text-white">{tenant.total_usuarios}</p>
+                            </div>
+                            <div className="bg-zinc-950 p-6 rounded-[1.5rem] border border-zinc-900/50">
+                               <p className="text-[9px] font-black text-zinc-700 uppercase tracking-widest mb-2">OS Ledger</p>
+                               <p className="text-2xl font-black text-white">{tenant.total_os}</p>
+                            </div>
+                         </div>
+
+                         <div className="space-y-4">
+                            <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest">
+                               <span className="text-zinc-600">Instance Health</span>
+                               <span className={isHealthy ? 'text-emerald-500' : 'text-rose-500'}>{isHealthy ? 'STABLE' : (tenant.ativo ? 'CRITICAL LOAD' : 'OFFLINE')}</span>
+                            </div>
+                            <div className="h-2 w-full bg-zinc-950 rounded-full overflow-hidden border border-zinc-900">
+                               <div 
+                                 className={`h-full transition-all duration-1000 ${isHealthy ? 'bg-emerald-500' : (tenant.ativo ? 'bg-rose-500' : 'bg-zinc-800')}`} 
+                                 style={{ width: tenant.ativo ? `${healthPercent}%` : '0%' }}
+                               ></div>
+                            </div>
+                         </div>
                       </div>
-                      <div className="h-4 bg-zinc-950 rounded-full border border-zinc-900 overflow-hidden">
-                         <div 
-                           className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_15px_#10b98155]" 
-                           style={{ width: `${Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%` }}
-                         ></div>
-                      </div>
-                      <div className="flex justify-between text-[10px] font-medium text-zinc-700">
-                         <span>{selectedTenant.currentReq} REQS TODAY</span>
-                         <span>MAX HEALTHY: 85%</span>
-                      </div>
-                   </div>
-                </div>
-             </div>
-
-             {/* Personal Request Graph */}
-             <div className="bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-zinc-900 mb-16 flex-1 flex flex-col">
-                <div className="flex justify-between items-center mb-12">
-                   <h3 className="text-2xl font-black text-white uppercase tracking-tight">Request Volume (24H)</h3>
-                   <span className="text-xs font-black text-emerald-500/50 tracking-widest">NODE_MONITOR_v1</span>
-                </div>
-                <div className="flex-1 w-full min-h-[300px]">
-                   <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={globalChartData.map(d => ({ ...d, load: Math.floor(d.load / 4) }))}>
-                         <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
-                         <Tooltip 
-                           contentStyle={{ backgroundColor: '#000', border: 'none', borderRadius: '16px', padding: '16px' }}
-                           itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
-                         />
-                         <Area type="monotone" dataKey="load" stroke="#10b981" strokeWidth={4} fill="#10b981" fillOpacity={0.05} />
-                      </AreaChart>
-                   </ResponsiveContainer>
-                </div>
-             </div>
-
-             <div className="pt-10 border-t border-zinc-900/50 flex gap-6">
-                <button 
-                  onClick={(e) => handleToggleStatus(e, selectedTenant.id)}
-                  className={`px-16 py-8 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 ${selectedTenant.ativo ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500 text-black shadow-2xl shadow-emerald-500/20'}`}
-                >
-                  {selectedTenant.ativo ? 'SUSPEND INSTANCE' : 'RESTORE ACCESS'}
-                </button>
+                   );
+                })}
              </div>
           </div>
         </div>
-      )}
-    </div>
+
+        {selectedTenant && (
+          <div className="fixed inset-0 z-[99999] bg-[#050505] overflow-y-auto animate-in fade-in zoom-in-95 duration-300 pointer-events-auto flex flex-col items-center justify-start">
+            <div className="w-full max-w-[1600px] w-[95%] p-10 min-h-screen flex flex-col">
+               <div className="flex justify-between items-center mb-16 mt-8">
+                  <div className="flex items-center gap-4">
+                     <div className="p-4 bg-zinc-900/80 rounded-2xl border border-zinc-800">
+                        <Cpu className="w-8 h-8 text-emerald-500" />
+                     </div>
+                     <h2 className="text-xl font-black text-zinc-500 uppercase tracking-[0.4em]">Instance Diagnostics</h2>
+                  </div>
+                  <button 
+                    onClick={() => setSelectedTenant(null)}
+                    className="p-5 bg-zinc-900 rounded-full hover:bg-zinc-800 transition-all border border-zinc-800 group"
+                  >
+                    <X className="w-8 h-8 text-zinc-400 group-hover:text-white transition-colors" />
+                  </button>
+               </div>
+
+               <div className="flex items-center gap-12 mb-20">
+                  <div className="w-40 h-40 rounded-[3rem] bg-zinc-900 border border-zinc-800 flex items-center justify-center text-7xl font-black text-emerald-500 shadow-2xl shadow-emerald-500/10">
+                     {selectedTenant.nome[0]}
+                  </div>
+                  <div>
+                     <h2 className="text-7xl font-black text-white tracking-tighter mb-4 italic uppercase">{selectedTenant.nome}</h2>
+                     <div className="flex items-center gap-4">
+                        <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${selectedTenant.ativo ? 'bg-emerald-500 text-black' : 'bg-rose-500 text-white'}`}>
+                           {selectedTenant.ativo ? 'ONLINE' : 'SUSPENDED'}
+                        </span>
+                        <span className="text-zinc-600 font-mono text-sm tracking-widest">{selectedTenant.id}</span>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-16">
+                  <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
+                     <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Total O.S.</p>
+                     <div className="flex items-end justify-between">
+                        <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_os || 0}</h4>
+                        <Wrench className="w-10 h-10 text-zinc-800 mb-2" />
+                     </div>
+                  </div>
+                  <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
+                     <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em] mb-8">Users Ledger</p>
+                     <div className="flex items-end justify-between">
+                        <h4 className="text-7xl font-black text-white leading-none">{selectedTenant.total_usuarios || 0}</h4>
+                        <Users className="w-10 h-10 text-zinc-800 mb-2" />
+                     </div>
+                  </div>
+                  <div className="bg-[#0a0a0a] p-12 rounded-[3rem] border border-zinc-900 flex flex-col justify-between">
+                     <div className="flex justify-between items-start mb-8">
+                        <p className="text-xs font-black text-zinc-600 uppercase tracking-[0.3em]">Consumption Limit</p>
+                        <span className="text-[10px] font-black text-zinc-700 tracking-widest italic">MAX: {GLOBAL_LIMIT}</span>
+                     </div>
+                     
+                     <div className="space-y-6">
+                        <div className="flex justify-between text-xs font-black text-zinc-500 uppercase tracking-widest">
+                           <span>Monthly Usage</span>
+                           <span className="text-white">{Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%</span>
+                        </div>
+                        <div className="h-4 bg-zinc-950 rounded-full border border-zinc-900 overflow-hidden">
+                           <div 
+                             className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 shadow-[0_0_15px_#10b98155]" 
+                             style={{ width: `${Math.round((selectedTenant.currentReq / GLOBAL_LIMIT) * 100)}%` }}
+                           ></div>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-medium text-zinc-700">
+                           <span>{selectedTenant.currentReq} REQS TODAY</span>
+                           <span>MAX HEALTHY: 85%</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+
+               <div className="bg-[#0a0a0a] p-12 rounded-[3.5rem] border border-zinc-900 mb-16 flex-1 flex flex-col">
+                  <div className="flex justify-between items-center mb-12">
+                     <h3 className="text-2xl font-black text-white uppercase tracking-tight">Request Volume (24H)</h3>
+                     <span className="text-xs font-black text-emerald-500/50 tracking-widest">NODE_MONITOR_v1</span>
+                  </div>
+                  <div className="flex-1 w-full min-h-[300px]">
+                     <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart data={globalChartData}>
+                           <CartesianGrid strokeDasharray="3 3" stroke="#18181b" vertical={false} />
+                           <XAxis dataKey="time" stroke="#3f3f46" fontSize={10} tickLine={false} axisLine={false} dy={10} />
+                           <Tooltip 
+                             contentStyle={{ backgroundColor: '#000', border: 'none', borderRadius: '16px', padding: '16px' }}
+                             itemStyle={{ color: '#10b981', fontWeight: 'bold' }}
+                           />
+                           <Area type="monotone" dataKey="load" stroke="#10b981" strokeWidth={4} fill="#10b981" fillOpacity={0.05} />
+                        </AreaChart>
+                     </ResponsiveContainer>
+                  </div>
+               </div>
+
+               <div className="pt-10 border-t border-zinc-900/50 flex gap-6 pb-20">
+                  <button 
+                    onClick={(e) => handleToggleStatus(e, selectedTenant.id)}
+                    className={`px-16 py-8 rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 ${selectedTenant.ativo ? 'bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white' : 'bg-emerald-500 text-black shadow-2xl shadow-emerald-500/20'}`}
+                  >
+                    {selectedTenant.ativo ? 'SUSPEND INSTANCE' : 'RESTORE ACCESS'}
+                  </button>
+               </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }

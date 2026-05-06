@@ -11,8 +11,8 @@ const sql = postgres(process.env.DATABASE_URL!);
 
 async function updateSchema() {
   try {
-    console.log('--- Updating os_servicos ---');
-    await sql`ALTER TABLE os_servicos ADD COLUMN IF NOT EXISTS quantidade INTEGER DEFAULT 1`;
+    console.log('--- Updating tenants ---');
+    await sql`ALTER TABLE tenants ADD COLUMN IF NOT EXISTS tutorial_concluido BOOLEAN DEFAULT false`;
     console.log('Success!');
   } catch (err) {
     console.error('Failed to update schema (likely permissions):', err);

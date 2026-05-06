@@ -22,16 +22,16 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 
 const navItems = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'O.S.', href: '/os', icon: ClipboardList },
-  { name: 'Pátio', href: '/patio', icon: Monitor, target: '_blank' },
-  { name: 'Financeiro', href: '/financeiro', icon: DollarSign },
-  { name: 'Clientes', href: '/clientes', icon: Users },
-  { name: 'Equipe', href: '/configuracoes/mecanicos', icon: Wrench },
-  { name: 'Leads', href: '/leads', icon: UserPlus },
-  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
-  { name: 'Integrações', href: '/integracoes', icon: Blocks },
-  { name: 'Configurações', href: '/configuracoes', icon: Settings },
+  { name: 'Dashboard', href: '/', icon: LayoutDashboard, tutorialId: 'menu-dashboard' },
+  { name: 'O.S.', href: '/os', icon: ClipboardList, tutorialId: 'menu-os' },
+  { name: 'Pátio', href: '/patio', icon: Monitor, target: '_blank', tutorialId: 'menu-patio' },
+  { name: 'Financeiro', href: '/financeiro', icon: DollarSign, tutorialId: 'menu-financeiro' },
+  { name: 'Clientes', href: '/clientes', icon: Users, tutorialId: 'menu-clientes' },
+  { name: 'Equipe', href: '/configuracoes/mecanicos', icon: Wrench, tutorialId: 'menu-equipe' },
+  { name: 'Leads', href: '/leads', icon: UserPlus, tutorialId: 'menu-leads' },
+  { name: 'WhatsApp', href: '/whatsapp', icon: MessageCircle, tutorialId: 'menu-whatsapp' },
+  { name: 'Integrações', href: '/integracoes', icon: Blocks, tutorialId: 'menu-integracoes' },
+  { name: 'Configurações', href: '/configuracoes', icon: Settings, tutorialId: 'menu-configuracoes' },
 ];
 
 export function Sidebar() {
@@ -59,6 +59,7 @@ export function Sidebar() {
               key={item.name}
               href={item.href}
               target={item.target ? item.target : undefined}
+              data-tutorial={item.tutorialId}
               className={`flex items-center gap-4 px-4 py-3 rounded-r-xl transition-all text-base font-bold mb-1 ${
                 isActive 
                   ? 'bg-slate-800 text-white border-l-4 border-emerald-500 shadow-md shadow-slate-900' 

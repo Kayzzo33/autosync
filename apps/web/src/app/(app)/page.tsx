@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { useTutorial } from '../../hooks/useTutorial';
 
 interface DashboardStats {
   faturamento_mes: number;
@@ -79,6 +80,8 @@ export default function DashboardPage() {
     return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
   };
 
+  const { showWelcome, startTour, skipTour } = useTutorial();
+
   if (loading && !stats) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -88,14 +91,47 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 relative">
+      {/* Welcome Modal */}
+      {showWelcome && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-emerald-500/20 rounded-full blur-3xl"></div>
+            
+            <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <CarFront className="w-8 h-8 text-emerald-500" />
+            </div>
+            
+            <h2 className="text-2xl font-black tracking-tight text-white mb-3">Bem-vindo ao AutoSync!</h2>
+            <p className="text-slate-400 mb-8 leading-relaxed">
+              Preparamos um tour rápido para te mostrar as principais funcionalidades do sistema.
+            </p>
+            
+            <div className="space-y-3">
+              <button 
+                onClick={startTour}
+                className="w-full bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-3 px-6 rounded-xl transition-all"
+              >
+                Iniciar tour
+              </button>
+              <button 
+                onClick={skipTour}
+                className="w-full bg-transparent hover:bg-white/5 text-slate-400 hover:text-white font-medium py-3 px-6 rounded-xl transition-all"
+              >
+                Pular tutorial
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <header>
-        <h1 className="text-3xl font-black tracking-tight text-slate-900 italic">AutoSync Dashboard</h1>
+        <h1 data-tutorial="dashboard-title" className="text-3xl font-black tracking-tight text-slate-900 italic">AutoSync Dashboard</h1>
         <p className="text-slate-500 mt-1 font-medium">Desempenho da oficina em tempo real.</p>
       </header>
 
       {/* Ações Rápidas */}
-      <div className="flex flex-wrap gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800">
+      <div data-tutorial="dashboard-actions" className="flex flex-wrap gap-4 bg-slate-900 p-6 rounded-3xl border border-slate-800">
         <button 
           onClick={() => router.push('/os?acao=novo')}
           className="flex-1 min-w-[200px] h-[60px] flex items-center justify-center gap-3 bg-emerald-500 hover:bg-emerald-400 text-white font-bold py-4 px-6 rounded-2xl transition-all hover:scale-[1.02]"

@@ -13,7 +13,7 @@ const tenantsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
       const result = await t`
         SELECT id, nome, subdominio, cnpj, telefone, endereco, whatsapp_templates, 
                conf_whatsapp_os_aberta, conf_whatsapp_os_pronta, conf_whatsapp_nps, conf_whatsapp_revisao,
-               created_at 
+               created_at, tutorial_concluido
         FROM tenants 
         WHERE id = ${tenant_id}
       `;
@@ -109,6 +109,27 @@ const tenantsRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     });
 
     return reply.send({ message: 'Configurações de automação atualizadas', configs: updated });
+  });
+
+  // Atualizar tutorial_concluido
+  app.patch('/tutorial-concluido', async (req, reply) => {
+    const { tenant_id, role } = req.user;
+
+    if (role !== 'admin') {
+      return reply.status(403).send({ error: 'Apenas administradores podem atualizar o status do tutorial' });
+    }
+
+    const updated = await withTenantRls(tenant_id, async (t) => {
+      const result = await t`
+        UPDATE tenants 
+        SET tutorial_concluido = true, updated_at = NOW()
+        WHERE id = ${tenant_id}
+        RETURNING id, tutorial_concluido
+      `;
+      return result[0];
+    });
+
+    return reply.send({ message: 'Tutorial concluído com sucesso', tenant: updated });
   });
 };
 

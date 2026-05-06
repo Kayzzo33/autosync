@@ -34,10 +34,12 @@ const authPlugin: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     secret: process.env.JWT_SECRET || 'supersecret_change_in_prod',
   });
 
-  fastify.register(fastifyCookie, {
-    secret: 'cookie-secret-1234',
-    hook: 'onRequest',
-  });
+  if (!fastify.hasDecorator('serializeCookie')) {
+    fastify.register(fastifyCookie, {
+      secret: 'cookie-secret-1234',
+      hook: 'onRequest',
+    });
+  }
 
   fastify.decorate('verifyJwt', async function (request: FastifyRequest, reply: FastifyReply) {
     try {
