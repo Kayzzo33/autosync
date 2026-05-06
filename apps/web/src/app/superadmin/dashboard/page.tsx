@@ -63,7 +63,14 @@ export default function SuperadminDashboard() {
         fetch('/api/superadmin/logs', { cache: 'no-store' })
       ]);
 
-      if (!tenantsRes.ok || !logsRes.ok) throw new Error('Falha ao buscar dados');
+      if (!tenantsRes.ok) {
+        const errJson = await tenantsRes.json().catch(() => ({}));
+        throw new Error(`Tenants Error: ${errJson.error || tenantsRes.statusText}`);
+      }
+      if (!logsRes.ok) {
+        const errJson = await logsRes.json().catch(() => ({}));
+        throw new Error(`Logs Error: ${errJson.error || logsRes.statusText}`);
+      }
 
       const tenantsData = await tenantsRes.json();
       const logsData = await logsRes.json();

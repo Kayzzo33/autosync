@@ -20,12 +20,13 @@ export async function GET(req: NextRequest) {
     });
 
     if (!res.ok) {
-      return NextResponse.json([], { status: 200 }); // logs são opcionais
+      const err = await res.text();
+      return NextResponse.json({ error: `Backend logs API error: ${res.status} ${err}` }, { status: res.status });
     }
 
     const data = await res.json();
     return NextResponse.json(data);
-  } catch {
-    return NextResponse.json([], { status: 200 }); // logs são opcionais
+  } catch (err: any) {
+    return NextResponse.json({ error: `Fetch Exception: ${err.message}` }, { status: 500 });
   }
 }

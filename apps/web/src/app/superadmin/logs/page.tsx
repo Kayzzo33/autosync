@@ -8,14 +8,22 @@ export default function LogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
   const loadLogs = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch('/api/superadmin/logs', { cache: 'no-store' });
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(`API Error: ${errJson.error || res.statusText}`);
+      }
       const data = await res.json();
       setLogs(Array.isArray(data) ? data : []);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -33,6 +41,13 @@ export default function LogsPage() {
           <p className="text-zinc-500 text-sm">Rastreamento de todas as ações administrativas</p>
         </div>
       </div>
+
+      {error && (
+        <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl flex items-center gap-3 text-rose-500">
+           <ShieldAlert className="w-5 h-5 flex-shrink-0" />
+           <p className="text-sm font-medium">{error}</p>
+        </div>
+      )}
 
       <div className="bg-[#0a0a0a] border border-zinc-900 rounded-[2rem] overflow-hidden">
         <table className="w-full text-left text-sm">
