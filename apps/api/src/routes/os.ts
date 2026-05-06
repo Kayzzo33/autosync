@@ -197,18 +197,6 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
             }
           }
 
-          const [categoria] = await t`
-            INSERT INTO categorias_movimentacao (tenant_id, nome, tipo)
-            VALUES (${tenant_id}, 'Serviços Oficina', 'entrada')
-            ON CONFLICT (tenant_id, nome) DO UPDATE SET nome = EXCLUDED.nome
-            RETURNING id
-          `;
-
-          await t`
-            INSERT INTO movimentacoes_financeiras (tenant_id, valor, tipo, categoria_id, data, os_id, descricao)
-            VALUES (${tenant_id}, ${os.valor_total}, 'entrada', ${categoria.id}, CURRENT_DATE, ${id}, ${`OS #${id.split('-')[0]} — ${os.cliente_nome}`})
-          `;
-
           await t`
             INSERT INTO contas_receber (tenant_id, os_id, valor, status)
             VALUES (${tenant_id}, ${id}, ${os.valor_total}, 'pendente')
@@ -301,35 +289,13 @@ const osRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           }
         }
 
-        // 5. Garantir Categoria
-        const [categoria] = await t`
-          INSERT INTO categorias_movimentacao (tenant_id, nome, tipo)
-          VALUES (${tenant_id}, 'Serviços Oficina', 'entrada')
-          ON CONFLICT (tenant_id, nome) DO UPDATE SET nome = EXCLUDED.nome
-          RETURNING id
-        `;
-
-        // 6. Financeiro: Movimentação (Evita duplicidade se clicado duas vezes)
-        const movCheck = await t`SELECT id FROM movimentacoes_financeiras WHERE os_id = ${id}`;
-        if (movCheck.length === 0) {
-          await t`
-            INSERT INTO movimentacoes_financeiras (tenant_id, valor, tipo, descricao, data, os_id, categoria_id)
-            VALUES (${tenant_id}, ${total}, 'entrada', ${`OS #${id.split('-')[0]} — ${os.cliente_nome}`}, NOW(), ${id}, ${categoria.id})
-          `;
-        } else {
-          await t`
-            UPDATE movimentacoes_financeiras 
-            SET valor = ${total}, updated_at = NOW()
-            WHERE os_id = ${id}
-          `;
-        }
-
-        // 7. Financeiro: Contas a Receber
+        // 5. Financeiro: Contas a Receber (Pendente)
         await t`
           INSERT INTO contas_receber (tenant_id, os_id, valor, status)
           VALUES (${tenant_id}, ${id}, ${total}, 'pendente')
           ON CONFLICT (os_id) DO UPDATE SET valor = EXCLUDED.valor
         `;
+
 
         return os;
       });

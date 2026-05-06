@@ -11,17 +11,17 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
     const { tenant_id } = req.user;
 
     const data = await withTenantRls(tenant_id, async (t) => {
-      // Faturamento do mês (Entradas convertidas em caixa)
+      // Faturamento do mês (Total de O.S. Fechadas no Mês - REGIME DE COMPETÊNCIA)
       const fatResult = await t`
-        SELECT SUM(valor) as total 
-        FROM movimentacoes_financeiras 
+        SELECT SUM(valor_total) as total 
+        FROM ordens_servico 
         WHERE tenant_id = ${tenant_id} 
-          AND tipo = 'entrada' 
-          AND EXTRACT(MONTH FROM data) = EXTRACT(MONTH FROM CURRENT_DATE)
-          AND EXTRACT(YEAR FROM data) = EXTRACT(YEAR FROM CURRENT_DATE)
+          AND status = 'fechada'
+          AND EXTRACT(MONTH FROM fechado_at) = EXTRACT(MONTH FROM CURRENT_DATE)
+          AND EXTRACT(YEAR FROM fechado_at) = EXTRACT(YEAR FROM CURRENT_DATE)
       `;
 
-      // Total Recebido Geral (Todas as entradas)
+      // Total Recebido Geral (Todas as entradas REAIS no Caixa)
       const totalRecebidoResult = await t`
         SELECT SUM(valor) as total 
         FROM movimentacoes_financeiras 
@@ -29,10 +29,9 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           AND tipo = 'entrada'
       `;
 
-      // Totais Contas_Receber
+      // Totais Contas_Receber (O que falta entrar)
       const contasResult = await t`
         SELECT 
-          SUM(CASE WHEN status = 'pago' THEN valor ELSE 0 END) as total_recebido,
           SUM(CASE WHEN status = 'pendente' THEN valor ELSE 0 END) as total_receber
         FROM contas_receber
         WHERE tenant_id = ${tenant_id}
@@ -40,7 +39,7 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
 
       return {
         faturamento_mes: Number(fatResult[0].total || 0),
-        total_recebido: Number(totalRecebidoResult[0].total || contasResult[0].total_recebido || 0),
+        total_recebido: Number(totalRecebidoResult[0].total || 0),
         total_receber: Number(contasResult[0].total_receber || 0),
       };
     });
@@ -134,7 +133,32 @@ const financeiroRoutes: FastifyPluginAsync = async (app: FastifyInstance) => {
           WHERE id = ${id} AND tenant_id = ${tenant_id}
           RETURNING *
         `;
-        return resp[0];
+        
+        if (resp.length === 0) return null;
+        const c = resp[0];
+
+        const [categoria] = await t`
+          INSERT INTO categorias_movimentacao (tenant_id, nome, tipo)
+          VALUES (${tenant_id}, 'Serviços Oficina', 'entrada')
+          ON CONFLICT (tenant_id, nome) DO UPDATE SET nome = EXCLUDED.nome
+          RETURNING id
+        `;
+
+        const osData = await t`
+          SELECT c.nome as cliente_nome 
+          FROM ordens_servico o
+          JOIN veiculos v ON v.id = o.veiculo_id
+          JOIN clientes c ON c.id = v.cliente_id
+          WHERE o.id = ${c.os_id}
+        `;
+        const clienteNome = osData.length ? osData[0].cliente_nome : 'Cliente Não Encontrado';
+
+        await t`
+          INSERT INTO movimentacoes_financeiras (tenant_id, valor, tipo, descricao, data, os_id, categoria_id)
+          VALUES (${tenant_id}, ${c.valor}, 'entrada', ${`Recebimento OS #${c.os_id.split('-')[0]} — ${clienteNome}`}, NOW(), ${c.os_id}, ${categoria.id})
+        `;
+
+        return c;
       });
 
       if (!conta) return reply.status(404).send({ error: 'Conta não encontrada ou acesso negado' });
