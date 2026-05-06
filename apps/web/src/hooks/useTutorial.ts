@@ -92,7 +92,7 @@ export function useTutorial() {
       nextBtnText: 'Próximo',
       prevBtnText: 'Anterior',
       popoverClass: 'driverjs-theme',
-      allowClose: true,
+      allowClose: false, // Impede que feche ao clicar fora
       onDestroyStarted: () => {
         markAsCompleted();
         driverObj.destroy();
